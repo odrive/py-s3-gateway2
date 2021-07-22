@@ -1,0 +1,5 @@
+pywin32 != 226; platform_system == "Windows"
+xmltodict
+cherrypy
+requests
+requests_toolbelt

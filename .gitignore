@@ -1,0 +1,6 @@
+/setup/env
+/bin/datastore
+.DS_Store
+*.idea
+*.pyc
+*.log

@@ -1,0 +1,9 @@
+{
+  "util.handler.usage.interval.seconds": 1000,
+  "util.handler.usage.count.max": 60,
+  "wsgi.log.enable": true,
+  "wsgi.log.path": "server.log",
+  "controller.datastore.path": "datastore",
+  "util.s3.log.enable": true,
+  "util.s3.log.file.path": "s3.log"
+}
