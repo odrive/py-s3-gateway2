@@ -89,15 +89,26 @@ python3 run.py
 
 ## Gateway Shell
 
-Access S3 buckets from the command line with Gateway Shell. You can access S3 interactively or as scriptable commands. 
+Access S3 Gateway from the command line with [Gateway Shell](https://github.com/odrive/gateway-api/blob/main/gateway-shell.md). 
 
-*Download link and screen shots coming soon ...*
+```
+% gws.exe
+gws> gateway list
+
+No authorizations found.
+gws> gateway authorize demo http://localhost:9084 '{"region": "us-east-1", "host": "s3.us-west-1.wasabisys.com", "bucket": "gateway-demo", "key": "xxx", "secret": "xxx"}'
+
+Success! Gateway authorized as demo.
+gws> gateway list
+demo
+gws> 
+```
 
 ## Gateway Sync
 
-Access S3 buckets directly on your computer with Gateway Sync.
+Access S3 Gateway directly on your computer with Gateway Sync.
 
-*Download link and screen shots coming soon ...*
+*Download link and screen shots coming soon*
 
 ## Gateway API
 
