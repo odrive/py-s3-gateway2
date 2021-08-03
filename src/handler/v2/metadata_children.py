@@ -143,7 +143,7 @@ def _get_metadata_children(environ, params):
         'code': '200',
         'message': 'ok',
         'header': {
-            'page': continuation_token
+            'X-Gateway-Page': continuation_token
         },
         'contentType': 'application/json',
         'content': json.dumps(content_list)
