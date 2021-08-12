@@ -202,7 +202,7 @@ def get_file_metadata(region, host, access_key, access_key_secret, bucket, objec
     return {
         'content.id': util.content_id.content_id(object_key),
         'content.type': 'file',
-        'content.name': result['name'],
+        'content.name': util.content_id.object_name(object_key),
         'content.modified': last_modified,
 
         'file.size': result['Content-Length'],
@@ -404,7 +404,7 @@ def move(region, host, access_key, access_key_secret, bucket, object_key, new_pr
         'content.name': util.content_id.object_name(new_object_key),
         'content.modified': modified,
 
-        'file.size': source_object['Content-Length'],
+        'file.size': source_object['file.size'],
         'file.hash': copy_object_response['CopyObjectResult']['ETag'],
     }
 
