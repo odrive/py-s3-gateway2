@@ -400,6 +400,9 @@ def get_object(region, host, access_key, access_key_secret, bucket, object_key):
 
     # handle ok
     if response.status_code == 200:
+        # convert Last-Modified to ISO 8601 format with microseconds and ending 'T' to match amazon list_objects call
+        response.headers['Last-Modified'] = f"{datetime.strptime(response.headers.get('Last-Modified'), '%a, %d %b %Y %H:%M:%S %Z').isoformat()}.000Z"
+
         # return metadata in response header
         return response.headers
 
