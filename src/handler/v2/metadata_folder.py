@@ -13,7 +13,7 @@ def handle(environ):
     # PATH_INFO
     params = {
         # URI /v2/metadata_folder/<content.id>
-        'content.id': environ['PATH_INFO'][20:] if len(environ['PATH_INFO']) > 20 else None,
+        'metadata.content.id': environ['PATH_INFO'][20:] if len(environ['PATH_INFO']) > 20 else None,
     }
 
     #
@@ -26,7 +26,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_metadata_folder' if params['content.id'] else ''
+        '_metadata_folder' if params['metadata.content.id'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -52,33 +52,33 @@ def _post(environ, params):
     #
 
     params.update({
-        'content.name': None,
-        'content.modified': None,
+        'metadata.content.name': None,
+        'metadata.content.modified': None,
     })
 
     # Load body.
     body = json.load(environ['wsgi.input'])
-    params['content.name'] = body.get('content.name')
-    params['content.modified'] = body.get('content.modified')
+    params['metadata.content.name'] = body.get('metadata.content.name')
+    params['metadata.content.modified'] = body.get('metadata.content.modified')
 
     #
     # Validate.
     #
 
     # Validate name.
-    if params['content.name'] is None:
+    if params['metadata.content.name'] is None:
         return {
             'code': '400',
             'message': 'Missing folder.name.'
         }
 
     # S3 does not support modified. So igmore.
-    # if params['content.modified'] is None:
+    # if params['metadata.content.modified'] is None:
     #     return {
     #         'code': '400',
     #         'message': 'Missing content.modified.'
     #     }
-    # if not isinstance(params['content.modified'], int):
+    # if not isinstance(params['metadata.content.modified'], int):
     #     return {
     #         'code': '400',
     #         'message': 'Invalid content.modified.'
@@ -95,7 +95,7 @@ def _post(environ, params):
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
         key_prefix=None,
-        folder_name=params['content.name']
+        folder_name=params['metadata.content.name']
     )
     if new_folder is None:
         return {
@@ -126,33 +126,33 @@ def _post_metadata_folder(environ, params):
     #
 
     params.update({
-        'content.name': None,
-        'content.modified': None,
+        'metadata.content.name': None,
+        'metadata.content.modified': None,
     })
 
     # Load body.
     body = json.load(environ['wsgi.input'])
-    params['content.name'] = body.get('content.name')
-    # params['content.modified'] = body.get('content.modified')
+    params['metadata.content.name'] = body.get('metadata.content.name')
+    # params['metadata.content.modified'] = body.get('metadata.content.modified')
 
     #
     # Validate.
     #
 
     # Validate name.
-    if params['content.name'] is None:
+    if params['metadata.content.name'] is None:
         return {
             'code': '400',
             'message': 'Missing folder.name.'
         }
 
     # S3 does not support modified. So igmore.
-    # if params['content.modified'] is None:
+    # if params['metadata.content.modified'] is None:
     #     return {
     #         'code': '400',
     #         'message': 'Missing content.modified.'
     #     }
-    # if not isinstance(params['content.modified'], int):
+    # if not isinstance(params['metadata.content.modified'], int):
     #     return {
     #         'code': '400',
     #         'message': 'Invalid content.modified.'
@@ -168,8 +168,8 @@ def _post_metadata_folder(environ, params):
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        key_prefix=util.content_id.object_key(params['content.id']),
-        folder_name=params['content.name']
+        key_prefix=util.content_id.object_key(params['metadata.content.id']),
+        folder_name=params['metadata.content.name']
     )
     if new_folder is None:
         return {

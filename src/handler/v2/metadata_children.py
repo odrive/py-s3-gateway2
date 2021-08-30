@@ -14,7 +14,7 @@ def handle(environ):
     # PATH_INFO
     params = {
         # URI /v2/metadata_children/<content.id>
-        'content.id': environ['PATH_INFO'][22:] if len(environ['PATH_INFO']) > 22 else None,
+        'metadata.content.id': environ['PATH_INFO'][22:] if len(environ['PATH_INFO']) > 22 else None,
     }
 
     #
@@ -27,7 +27,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_metadata_children' if params['content.id'] else ''
+        '_metadata_children' if params['metadata.content.id'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -100,7 +100,7 @@ def _get(environ, params):
 @util.handler.load_s3_config
 @util.handler.handle_s3_exception
 def _get_metadata_children(environ, params):
-    assert params.get('content.id')
+    assert params.get('metadata.content.id')
 
     #
     # Load.
@@ -123,7 +123,7 @@ def _get_metadata_children(environ, params):
     #
 
     # List folder content metadata.
-    prefix = base64.urlsafe_b64decode(params['content.id']).decode('utf-8')
+    prefix = base64.urlsafe_b64decode(params['metadata.content.id']).decode('utf-8')
     assert prefix[-1] == '/'
     content_list, continuation_token = controller.s3.list_content(
         region=params['config.region'],

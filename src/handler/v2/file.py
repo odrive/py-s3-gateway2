@@ -12,7 +12,7 @@ def handle(environ):
     params = {
         # From PATH_INFO
         # /v1/file/<content.id>
-        'content.id': environ['PATH_INFO'][9:] if len(environ['PATH_INFO']) > 9 else None,
+        'metadata.content.id': environ['PATH_INFO'][9:] if len(environ['PATH_INFO']) > 9 else None,
     }
 
     #
@@ -25,7 +25,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_file' if params['content.id'] else ''
+        '_file' if params['metadata.content.id'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -46,13 +46,13 @@ def handle(environ):
 @util.handler.load_s3_config
 @util.handler.handle_s3_exception
 def _get_file(environ, params):
-    assert params.get('content.id')
+    assert params.get('metadata.content.id')
 
     #
     # Validate.
     #
 
-    object_key = util.content_id.object_key(params['content.id'])
+    object_key = util.content_id.object_key(params['metadata.content.id'])
     if object_key[-1] == '/':
         # Not file.
         return {

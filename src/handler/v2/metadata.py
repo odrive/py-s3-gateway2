@@ -14,7 +14,7 @@ def handle(environ):
 
     params = {
         # From PATH_INFO: /v2/metadata/<content.id>
-        'content.id': environ['PATH_INFO'][13:] if len(environ['PATH_INFO']) > 13 else None,
+        'metadata.content.id': environ['PATH_INFO'][13:] if len(environ['PATH_INFO']) > 13 else None,
     }
 
     #
@@ -27,7 +27,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_metadata' if params['content.id'] else ''
+        '_metadata' if params['metadata.content.id'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -58,10 +58,10 @@ def _delete(environ, params):
 @util.handler.load_s3_config
 @util.handler.handle_s3_exception
 def _delete_metadata(environ, params):
-    assert params.get('content.id')
+    assert params.get('metadata.content.id')
 
     # Delete file.
-    object_key = util.content_id.object_key(params['content.id'])
+    object_key = util.content_id.object_key(params['metadata.content.id'])
     if object_key:
         result = controller.s3.delete_file(
             region=params['config.region'],
@@ -85,7 +85,7 @@ def _delete_metadata(environ, params):
         }
 
     # Delete folder.
-    prefix = util.content_id.object_key(params['content.id'])
+    prefix = util.content_id.object_key(params['metadata.content.id'])
     if prefix:
         result = controller.s3.delete_folder(
             region=params['config.region'],
@@ -125,9 +125,9 @@ def _get(environ, params):
         'message': 'ok',
         'contentType': 'application/json',
         'content': json.dumps({
-            'content.id': '',
-            'content.type': 'folder',
-            'content.name': '',
+            'metadata.content.id': '',
+            'metadata.content.type': 'folder',
+            'metadata.content.name': '',
         })
     }
 
@@ -141,7 +141,7 @@ def _get(environ, params):
 @util.handler.load_s3_config
 @util.handler.handle_s3_exception
 def _get_metadata(environ, params):
-    assert params.get('content.id')
+    assert params.get('metadata.content.id')
 
     #
     # Load.
@@ -155,7 +155,7 @@ def _get_metadata(environ, params):
     # Execute.
     #
 
-    object_key = util.content_id.object_key(params['content.id'])
+    object_key = util.content_id.object_key(params['metadata.content.id'])
 
     # Handle folder.
     if object_key[-1] == '/':
@@ -164,9 +164,9 @@ def _get_metadata(environ, params):
             'message': 'ok',
             'contentType': 'application/json',
             'content': json.dumps({
-                'content.id': util.content_id.content_id(object_key),
-                'content.type': 'folder',
-                'content.name': params['prefix'].rstrip('/').split('/')[-1]
+                'metadata.content.id': util.content_id.content_id(object_key),
+                'metadata.content.type': 'folder',
+                'metadata.content.name': params['prefix'].rstrip('/').split('/')[-1]
             })
         }
 
@@ -197,35 +197,35 @@ def _get_metadata(environ, params):
 @util.handler.load_s3_config
 @util.handler.handle_s3_exception
 def _put_metadata(environ, params):
-    assert params.get('content.id')
+    assert params.get('metadata.content.id')
 
     #
     # Load.
     #
 
     params.update({
-        'file.size': None,
-        'content.modified': None,
+        'metadata.file.size': None,
+        'metadata.content.modified': None,
     })
 
     # From headers.
     if environ.get('HTTP_X_GATEWAY_UPLOAD'):  # wsgi adds HTTP to the header, so client should use X_UPLOAD_JSON
         header_params = json.loads(environ['HTTP_X_GATEWAY_UPLOAD'])
         if header_params:
-            params['content.modified'] = header_params.get('content.modified')
-            params['file.size'] = header_params.get('file.size')
+            params['metadata.content.modified'] = header_params.get('metadata.content.modified')
+            params['metadata.file.size'] = header_params.get('metadata.file.size')
 
     #
     # Validate.
     #
 
     # Validate type.
-    if params['file.size'] and not isinstance(params['file.size'], int):
+    if params['metadata.file.size'] and not isinstance(params['metadata.file.size'], int):
         return {
             'code': '400',
             'message': 'Invalid size.'
         }
-    if params['content.modified'] and not isinstance(params['content.modified'], int):
+    if params['metadata.content.modified'] and not isinstance(params['metadata.content.modified'], int):
         return {
             'code': '400',
             'message': 'Invalid content.modified.'
@@ -242,9 +242,9 @@ def _put_metadata(environ, params):
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        object_key=util.content_id.object_key(params['content.id']),
-        size=params['file.size'],
-        modified=params['content.modified'],
+        object_key=util.content_id.object_key(params['metadata.content.id']),
+        size=params['metadata.file.size'],
+        modified=params['metadata.content.modified'],
         data=environ['wsgi.input'],
     )
     if updated_content is None:

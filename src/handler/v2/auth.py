@@ -15,7 +15,7 @@ def handle(environ):
     params = {
         # From PATH_INFO
         # /v2/auth/<access.token>
-        'access.token': environ['PATH_INFO'][9:] if len(environ['PATH_INFO']) > 9 else None,
+        'auth.access.token': environ['PATH_INFO'][9:] if len(environ['PATH_INFO']) > 9 else None,
     }
 
     #
@@ -28,7 +28,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_auth' if params['access.token'] else ''
+        '_auth' if params['auth.access.token'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -128,9 +128,9 @@ def _post(environ, params):
     }
     assert controller.datastore.put(access_token, config, 'registration')
     response = {
-        'access.token': access_token,
-        'refresh.token': None,
-        'root.content.id': config['config.root.content.id']
+        'auth.access.token': access_token,
+        'auth.refresh.token': None,
+        'auth.metadata.content.id': config['config.root.content.id']
     }
     return {
         'code': '200',
@@ -146,7 +146,7 @@ def _post(environ, params):
 @util.handler.limit_usage
 @util.handler.handle_requests_exception
 def _delete_auth(environ, params):
-    assert params.get('access.token')
+    assert params.get('auth.access.token')
 
     #
     # params
@@ -158,7 +158,7 @@ def _delete_auth(environ, params):
     })
 
     # load datastore
-    params['registration'] = controller.datastore.get(params['access.token'], 'registration')
+    params['registration'] = controller.datastore.get(params['auth.access.token'], 'registration')
 
     #
     # validate
@@ -176,7 +176,7 @@ def _delete_auth(environ, params):
     #
 
     # delete registration
-    controller.datastore.delete(params['access.token'], 'registration')
+    controller.datastore.delete(params['auth.access.token'], 'registration')
     return {
         'code': '200',
         'message': 'OK'

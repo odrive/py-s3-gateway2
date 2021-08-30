@@ -12,8 +12,8 @@ def handle(environ):
 
     # PATH_INFO
     params = {
-        # URI /v2/metadata_parent/<content.id>
-        'content.id': environ['PATH_INFO'][20:] if len(environ['PATH_INFO']) > 20 else None,
+        # URI /v2/metadata_content_name/<content.id>
+        'metadata.content.id': environ['PATH_INFO'][18:] if len(environ['PATH_INFO']) > 18 else None,
     }
 
     #
@@ -26,7 +26,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_metadata_parent' if params['content.id'] else ''
+        '_metadata_content_name' if params['metadata.content.id'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -38,62 +38,56 @@ def handle(environ):
     }
 
 
-# Move file or folder.
-# PATCH /v2/metadata_parent/<content.id>
+# Rename file or folder.
+# PATCH /v2/metadata_content_name/<content.id>
 @util.handler.handle_unexpected_exception
 @util.handler.limit_usage
 @util.handler.handle_requests_exception
 @util.handler.load_access_token
 @util.handler.load_s3_config
 @util.handler.handle_s3_exception
-def _patch_metadata_parent(environ, params):
-    assert params.get('content.id')
+def _patch_metadata_content_name(environ, params):
+    assert params.get('metadata.content.id')
 
     #
     # Load.
     #
 
     params.update({
-        'parent.content.id': None,
+        'new.metadata.content.name': None,
+        'old.metadata.content.name': None,
     })
 
     # Load body.
     body = json.load(environ['wsgi.input'])
-    params['parent.content.id'] = body.get('parent.content.id')
+    params['new.metadata.content.name'] = body.get('new.metadata.content.name')
+    params['old.metadata.content.name'] = body.get('old.metadata.content.name')
 
     #
     # Validate.
     #
 
-    # Check new parent.
-    if params['parent.content.id'] is None:
+    # Validate name.
+    if params['new.metadata.content.name'] is None:
         return {
             'code': '400',
-            'message': 'Missing parent.content.id.'
-        }
-
-    # Check source.
-    if util.content_id.object_key(params['content.id'])[-1] == '/':
-        # Not allowed to move folder.
-        return {
-            'code': '403',
-            'message': 'Not allowed to move folder.'
+            'message': 'Missing new.metadata.content.name'
         }
 
     #
     # Execute.
     #
 
-    moved_content = controller.s3.move(
+    renamed_content = controller.s3.rename(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        object_key=util.content_id.object_key(params['content.id']),
-        new_prefix=util.content_id.object_key(params['parent.content.id'])
+        object_key=util.content_id.object_key(params['metadata.content.id']),
+        new_name=params['new.metadata.content.name'],
     )
-    if moved_content is None:
+    if renamed_content is None:
         return {
             'code': '403',
             'message': 'Not allowed.'
@@ -102,5 +96,5 @@ def _patch_metadata_parent(environ, params):
         'code': '200',
         'message': 'ok',
         'contentType': 'application/json',
-        'content': json.dumps(moved_content)
+        'content': json.dumps(renamed_content)
     }
