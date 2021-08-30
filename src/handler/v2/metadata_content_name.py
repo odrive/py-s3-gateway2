@@ -13,7 +13,7 @@ def handle(environ):
     # PATH_INFO
     params = {
         # URI /v2/metadata_content_name/<content.id>
-        'metadata.content.id': environ['PATH_INFO'][18:] if len(environ['PATH_INFO']) > 18 else None,
+        'metadata.content.id': environ['PATH_INFO'][26:] if len(environ['PATH_INFO']) > 26 else None,
     }
 
     #
