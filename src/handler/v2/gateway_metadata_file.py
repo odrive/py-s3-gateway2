@@ -205,16 +205,3 @@ def _put_gateway_metadata(environ, params):
         'contentType': 'application/json',
         'content': json.dumps(result)
     }
-
-
-def _file_stream_generator(upload, limit):
-    uploaded_bytes = 0
-    chunk_size = 1024 * 1024 * 2  # 2MB chunk/buffer size
-    while True:
-        if limit <= uploaded_bytes:
-            break
-        out = upload.read(chunk_size)
-        if not out:
-            break
-        uploaded_bytes += chunk_size
-        yield out
