@@ -154,7 +154,7 @@ def _get_gateway_metadata(environ, params):
     # Execute.
     #
 
-    object_key = util.metadata_id.object_key(params['metadata.content.id'])
+    object_key = util.metadata_id.object_key(params['gateway.metadata.id'])
 
     # Handle folder.
     if object_key[-1] == '/':

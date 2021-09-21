@@ -133,7 +133,7 @@ def _post_gateway_metadata_folder(environ, params):
     # Load body.
     body = json.load(environ['wsgi.input'])
     params['gateway.metadata.name'] = body.get('gateway.metadata.name')
-    # params['metadata.content.modified'] = body.get('metadata.content.modified')
+    # params['gateway.metadata.modified'] = body.get('gateway.metadata.modified')
 
     #
     # Validate.

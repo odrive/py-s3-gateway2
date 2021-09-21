@@ -404,7 +404,7 @@ def move(region, host, access_key, access_key_secret, bucket, object_key, new_pr
         'gateway.metadata.name': util.metadata_id.object_name(new_object_key),
         'gateway.metadata.modified': modified,
 
-        'gateway.metadata.file.size': source_object['metadata.file.size'],
+        'gateway.metadata.file.size': source_object['gateway.metadata.file.size'],
         'gateway.metadata.file.hash': copy_object_response['CopyObjectResult']['ETag'],
     }
 
