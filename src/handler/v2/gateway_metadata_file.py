@@ -106,7 +106,7 @@ def _post_gateway_metadata_file(environ, params):
     prefix = util.metadata_id.object_key(params['gateway.metadata.id']) if params['gateway.metadata.id'] else None
     if prefix:
         assert prefix[-1] == '/'
-    new_content = controller.s3.create_file(
+    result = controller.s3.create_file(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],
@@ -118,18 +118,18 @@ def _post_gateway_metadata_file(environ, params):
         modified=params['gateway.metadata.modified'],
         data=environ['wsgi.input']
     )
-    if new_content is None:
+    if result is None:
         return {
             'code': '403',
             'message': 'Not allowed.'
         }
 
-    # Send new content.
+    # Send new metadata.
     return {
         'code': '200',
         'message': 'ok',
         'contentType': 'application/json',
-        'content': json.dumps(new_content)
+        'content': json.dumps(result)
     }
 
 

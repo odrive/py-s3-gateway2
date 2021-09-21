@@ -26,7 +26,7 @@ def create_file(region, host, access_key, access_key_secret, bucket,
         # Not allowed.
         return None
 
-    # Return s3_obj as content.
+    # Return s3_obj as metadata.
     return {
         'gateway.metadata.id': util.metadata_id.metadata_id(object_key),
         'gateway.metadata.type': 'file',
@@ -194,7 +194,7 @@ def get_file_metadata(region, host, access_key, access_key_secret, bucket, objec
         object_key=object_key
     )
 
-    # Generate content.
+    # Generate metadata.
     last_modified = int(
         (datetime.strptime(result.get('Last-Modified'), '%Y-%m-%dT%H:%M:%S.%fZ')
          - datetime(1970, 1, 1)).total_seconds() * 1000
