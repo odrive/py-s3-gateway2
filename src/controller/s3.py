@@ -28,7 +28,7 @@ def create_file(region, host, access_key, access_key_secret, bucket,
 
     # Return s3_obj as content.
     return {
-        'metadata.content.id': util.metadata_id.content_id(object_key),
+        'metadata.content.id': util.metadata_id.metadata_id(object_key),
         'metadata.content.type': 'file',
         'metadata.content.name': file_name,
         'metadata.content.modified': modified,
@@ -67,7 +67,7 @@ def create_folder(region, host, access_key, access_key_secret, bucket, key_prefi
 
     # Success.
     return {
-        'metadata.content.id': util.metadata_id.content_id(object_key),
+        'metadata.content.id': util.metadata_id.metadata_id(object_key),
         'metadata.content.type': 'folder',
         'metadata.content.name': folder_name,
         'metadata.content.modified': None
@@ -200,7 +200,7 @@ def get_file_metadata(region, host, access_key, access_key_secret, bucket, objec
          - datetime(1970, 1, 1)).total_seconds() * 1000
     )
     return {
-        'metadata.content.id': util.metadata_id.content_id(object_key),
+        'metadata.content.id': util.metadata_id.metadata_id(object_key),
         'metadata.content.type': 'file',
         'metadata.content.name': util.metadata_id.object_name(object_key),
         'metadata.content.modified': last_modified,
@@ -299,7 +299,7 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
 
         # assemble file content resource
         content_listing.append({
-            'metadata.content.id': util.metadata_id.content_id(file_obj['Key']),
+            'metadata.content.id': util.metadata_id.metadata_id(file_obj['Key']),
             'metadata.content.type': 'file',
             'metadata.content.name': name,
             'metadata.content.modified': modified,
@@ -312,7 +312,7 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
     for prefix in prefix_list:
         name = prefix['Prefix'].rstrip('/').split('/')[-1]  # extract name from prefix
         content_listing.append({
-            'metadata.content.id': util.metadata_id.content_id(prefix['Prefix']),
+            'metadata.content.id': util.metadata_id.metadata_id(prefix['Prefix']),
             'metadata.content.type': 'folder',
             'metadata.content.name': name,
             'metadata.content.modified': None
@@ -399,7 +399,7 @@ def move(region, host, access_key, access_key_secret, bucket, object_key, new_pr
          - datetime(1970, 1, 1)).total_seconds() * 1000
     )
     return {
-        'metadata.content.id': util.metadata_id.content_id(new_object_key),
+        'metadata.content.id': util.metadata_id.metadata_id(new_object_key),
         'metadata.content.type': 'file',
         'metadata.content.name': util.metadata_id.object_name(new_object_key),
         'metadata.content.modified': modified,
@@ -475,7 +475,7 @@ def rename(region, host, access_key, access_key_secret, bucket, object_key, new_
          - datetime(1970, 1, 1)).total_seconds() * 1000
     )
     return {
-        'metadata.content.id': util.metadata_id.content_id(new_object_key),
+        'metadata.content.id': util.metadata_id.metadata_id(new_object_key),
         'metadata.content.type': 'file',
         'metadata.content.name': new_name,
         'metadata.content.modified': modified,
@@ -511,7 +511,7 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
 
     # Success.
     return {
-        'metadata.content.id': util.metadata_id.content_id(object_key),
+        'metadata.content.id': util.metadata_id.metadata_id(object_key),
         'metadata.content.type': 'file',
         'metadata.content.name': util.metadata_id.object_name(object_key),
         'metadata.content.modified': modified,

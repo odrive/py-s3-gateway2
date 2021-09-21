@@ -164,7 +164,7 @@ def _get_metadata(environ, params):
             'message': 'ok',
             'contentType': 'application/json',
             'content': json.dumps({
-                'metadata.content.id': util.metadata_id.content_id(object_key),
+                'metadata.content.id': util.metadata_id.metadata_id(object_key),
                 'metadata.content.type': 'folder',
                 'metadata.content.name': params['prefix'].rstrip('/').split('/')[-1]
             })
