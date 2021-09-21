@@ -2,7 +2,6 @@ import json
 import util.handler
 import util.metadata_id
 import controller.s3
-import requests_toolbelt
 
 
 def handle(environ):
@@ -131,6 +130,80 @@ def _post_gateway_metadata_file(environ, params):
         'message': 'ok',
         'contentType': 'application/json',
         'content': json.dumps(new_content)
+    }
+
+
+# Update file.
+# PUT /v2/gateway_metadata_file/<gateway.metadata.id>
+@util.handler.handle_unexpected_exception
+@util.handler.limit_usage
+@util.handler.handle_requests_exception
+@util.handler.load_access_token
+@util.handler.load_s3_config
+@util.handler.handle_s3_exception
+def _put_gateway_metadata(environ, params):
+    assert params.get('gateway.metadata.id')
+
+    #
+    # Load.
+    #
+
+    params.update({
+        'gateway.metadata.file.size': None,
+        'gateway.metadata.modified': None,
+    })
+
+    # From headers.
+    if environ.get('HTTP_X_GATEWAY_UPLOAD'):  # wsgi adds HTTP to the header, so client should use X_UPLOAD_JSON
+        header_params = json.loads(environ['HTTP_X_GATEWAY_UPLOAD'])
+        if header_params:
+            params['gateway.metadata.modified'] = header_params.get('gateway.metadata.modified')
+            params['gateway.metadata.file.size'] = header_params.get('gateway.metadata.file.size')
+
+    #
+    # Validate.
+    #
+
+    # Validate type.
+    if params['gateway.metadata.file.size'] and not isinstance(params['gateway.metadata.file.size'], int):
+        return {
+            'code': '400',
+            'message': 'Invalid size.'
+        }
+    if params['gateway.metadata.modified'] and not isinstance(params['gateway.metadata.modified'], int):
+        return {
+            'code': '400',
+            'message': 'Invalid gateway.metadata.modified.'
+        }
+
+    #
+    # Execute request.
+    #
+
+    # Update
+    result = controller.s3.update_file(
+        region=params['config.region'],
+        host=params['config.host'],
+        access_key=params['config.access.key'],
+        access_key_secret=params['config.access.key.secret'],
+        bucket=params['config.bucket'],
+        object_key=util.metadata_id.object_key(params['gateway.metadata.id']),
+        size=params['gateway.metadata.file.size'],
+        modified=params['gateway.metadata.modified'],
+        data=environ['wsgi.input'],
+    )
+    if result is None:
+        return {
+            'code': '403',
+            'message': 'Not allowed.'
+        }
+
+    # Send new result.
+    return {
+        'code': '200',
+        'message': 'ok',
+        'contentType': 'application/json',
+        'content': json.dumps(result)
     }
 
 
