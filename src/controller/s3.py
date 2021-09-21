@@ -28,13 +28,13 @@ def create_file(region, host, access_key, access_key_secret, bucket,
 
     # Return s3_obj as content.
     return {
-        'metadata.content.id': util.metadata_id.metadata_id(object_key),
-        'metadata.content.type': 'file',
-        'metadata.content.name': file_name,
-        'metadata.content.modified': modified,
+        'gateway.metadata.id': util.metadata_id.metadata_id(object_key),
+        'gateway.metadata.type': 'file',
+        'gateway.metadata.name': file_name,
+        'gateway.metadata.modified': modified,
 
-        'metadata.file.size': response_header['Content-Length'],
-        'metadata.file.hash': response_header['ETag'],
+        'gateway.metadata.file.size': response_header['Content-Length'],
+        'gateway.metadata.file.hash': response_header['ETag'],
     }
 
 
@@ -67,10 +67,10 @@ def create_folder(region, host, access_key, access_key_secret, bucket, key_prefi
 
     # Success.
     return {
-        'metadata.content.id': util.metadata_id.metadata_id(object_key),
-        'metadata.content.type': 'folder',
-        'metadata.content.name': folder_name,
-        'metadata.content.modified': None
+        'gateway.metadata.id': util.metadata_id.metadata_id(object_key),
+        'gateway.metadata.type': 'folder',
+        'gateway.metadata.name': folder_name,
+        'gateway.metadata.modified': None
     }
 
 
@@ -200,13 +200,13 @@ def get_file_metadata(region, host, access_key, access_key_secret, bucket, objec
          - datetime(1970, 1, 1)).total_seconds() * 1000
     )
     return {
-        'metadata.content.id': util.metadata_id.metadata_id(object_key),
-        'metadata.content.type': 'file',
-        'metadata.content.name': util.metadata_id.object_name(object_key),
-        'metadata.content.modified': last_modified,
+        'gateway.metadata.id': util.metadata_id.metadata_id(object_key),
+        'gateway.metadata.type': 'file',
+        'gateway.metadata.name': util.metadata_id.object_name(object_key),
+        'gateway.metadata.modified': last_modified,
 
-        'metadata.file.size': result['Content-Length'],
-        'metadata.file.hash': result['ETag'],
+        'gateway.metadata.file.size': result['Content-Length'],
+        'gateway.metadata.file.hash': result['ETag'],
     }
 
 
@@ -299,23 +299,23 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
 
         # assemble file content resource
         content_listing.append({
-            'metadata.content.id': util.metadata_id.metadata_id(file_obj['Key']),
-            'metadata.content.type': 'file',
-            'metadata.content.name': name,
-            'metadata.content.modified': modified,
+            'gateway.metadata.id': util.metadata_id.metadata_id(file_obj['Key']),
+            'gateway.metadata.type': 'file',
+            'gateway.metadata.name': name,
+            'gateway.metadata.modified': modified,
 
-            'metadata.file.hash': file_obj['ETag'],
-            'metadata.file.size': file_obj['Size'],
+            'gateway.metadata.file.hash': file_obj['ETag'],
+            'gateway.metadata.file.size': file_obj['Size'],
         })
 
     # convert folder list to content resource
     for prefix in prefix_list:
         name = prefix['Prefix'].rstrip('/').split('/')[-1]  # extract name from prefix
         content_listing.append({
-            'metadata.content.id': util.metadata_id.metadata_id(prefix['Prefix']),
-            'metadata.content.type': 'folder',
-            'metadata.content.name': name,
-            'metadata.content.modified': None
+            'gateway.metadata.id': util.metadata_id.metadata_id(prefix['Prefix']),
+            'gateway.metadata.type': 'folder',
+            'gateway.metadata.name': name,
+            'gateway.metadata.modified': None
         })
 
     # add continuation token to data
@@ -399,13 +399,13 @@ def move(region, host, access_key, access_key_secret, bucket, object_key, new_pr
          - datetime(1970, 1, 1)).total_seconds() * 1000
     )
     return {
-        'metadata.content.id': util.metadata_id.metadata_id(new_object_key),
-        'metadata.content.type': 'file',
-        'metadata.content.name': util.metadata_id.object_name(new_object_key),
-        'metadata.content.modified': modified,
+        'gateway.metadata.id': util.metadata_id.metadata_id(new_object_key),
+        'gateway.metadata.type': 'file',
+        'gateway.metadata.name': util.metadata_id.object_name(new_object_key),
+        'gateway.metadata.modified': modified,
 
-        'metadata.file.size': source_object['metadata.file.size'],
-        'metadata.file.hash': copy_object_response['CopyObjectResult']['ETag'],
+        'gateway.metadata.file.size': source_object['metadata.file.size'],
+        'gateway.metadata.file.hash': copy_object_response['CopyObjectResult']['ETag'],
     }
 
 
@@ -475,13 +475,13 @@ def rename(region, host, access_key, access_key_secret, bucket, object_key, new_
          - datetime(1970, 1, 1)).total_seconds() * 1000
     )
     return {
-        'metadata.content.id': util.metadata_id.metadata_id(new_object_key),
-        'metadata.content.type': 'file',
-        'metadata.content.name': new_name,
-        'metadata.content.modified': modified,
+        'gateway.metadata.id': util.metadata_id.metadata_id(new_object_key),
+        'gateway.metadata.type': 'file',
+        'gateway.metadata.name': new_name,
+        'gateway.metadata.modified': modified,
 
-        'metadata.file.size': int(source_object['Content-Length']),
-        'metadata.file.hash': copy_object_response['CopyObjectResult']['ETag'],
+        'gateway.metadata.file.size': int(source_object['Content-Length']),
+        'gateway.metadata.file.hash': copy_object_response['CopyObjectResult']['ETag'],
     }
 
 
@@ -511,13 +511,13 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
 
     # Success.
     return {
-        'metadata.content.id': util.metadata_id.metadata_id(object_key),
-        'metadata.content.type': 'file',
-        'metadata.content.name': util.metadata_id.object_name(object_key),
-        'metadata.content.modified': modified,
+        'gateway.metadata.id': util.metadata_id.metadata_id(object_key),
+        'gateway.metadata.type': 'file',
+        'gateway.metadata.name': util.metadata_id.object_name(object_key),
+        'gateway.metadata.modified': modified,
 
-        'metadata.file.hash': response_header['ETag'],
-        'metadata.file.size': response_header['Content-Length'],
+        'gateway.metadata.file.hash': response_header['ETag'],
+        'gateway.metadata.file.size': response_header['Content-Length'],
     }
 
 
