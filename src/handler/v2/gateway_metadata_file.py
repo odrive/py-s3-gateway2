@@ -1,6 +1,6 @@
 import json
 import util.handler
-import util.content_id
+import util.metadata_id
 import controller.s3
 import requests_toolbelt
 
@@ -104,7 +104,7 @@ def _post_metadata_file(environ, params):
     # Execute request.
     #
 
-    prefix = util.content_id.object_key(params['metadata.content.id']) if params['metadata.content.id'] else None
+    prefix = util.metadata_id.object_key(params['metadata.content.id']) if params['metadata.content.id'] else None
     if prefix:
         assert prefix[-1] == '/'
     new_content = controller.s3.create_file(

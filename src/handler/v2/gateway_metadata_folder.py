@@ -1,6 +1,6 @@
 import json
 import util.handler
-import util.content_id
+import util.metadata_id
 import controller.s3
 
 
@@ -168,7 +168,7 @@ def _post_metadata_folder(environ, params):
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        key_prefix=util.content_id.object_key(params['metadata.content.id']),
+        key_prefix=util.metadata_id.object_key(params['metadata.content.id']),
         folder_name=params['metadata.content.name']
     )
     if new_folder is None:

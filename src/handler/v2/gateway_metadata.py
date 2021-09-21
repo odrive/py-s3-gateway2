@@ -1,7 +1,7 @@
 import json
 import urllib.parse
 import util.handler
-import util.content_id
+import util.metadata_id
 import controller.s3
 import requests_toolbelt
 
@@ -61,7 +61,7 @@ def _delete_metadata(environ, params):
     assert params.get('metadata.content.id')
 
     # Delete file.
-    object_key = util.content_id.object_key(params['metadata.content.id'])
+    object_key = util.metadata_id.object_key(params['metadata.content.id'])
     if object_key:
         result = controller.s3.delete_file(
             region=params['config.region'],
@@ -85,7 +85,7 @@ def _delete_metadata(environ, params):
         }
 
     # Delete folder.
-    prefix = util.content_id.object_key(params['metadata.content.id'])
+    prefix = util.metadata_id.object_key(params['metadata.content.id'])
     if prefix:
         result = controller.s3.delete_folder(
             region=params['config.region'],
@@ -155,7 +155,7 @@ def _get_metadata(environ, params):
     # Execute.
     #
 
-    object_key = util.content_id.object_key(params['metadata.content.id'])
+    object_key = util.metadata_id.object_key(params['metadata.content.id'])
 
     # Handle folder.
     if object_key[-1] == '/':
@@ -164,7 +164,7 @@ def _get_metadata(environ, params):
             'message': 'ok',
             'contentType': 'application/json',
             'content': json.dumps({
-                'metadata.content.id': util.content_id.content_id(object_key),
+                'metadata.content.id': util.metadata_id.content_id(object_key),
                 'metadata.content.type': 'folder',
                 'metadata.content.name': params['prefix'].rstrip('/').split('/')[-1]
             })
@@ -242,7 +242,7 @@ def _put_metadata(environ, params):
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        object_key=util.content_id.object_key(params['metadata.content.id']),
+        object_key=util.metadata_id.object_key(params['metadata.content.id']),
         size=params['metadata.file.size'],
         modified=params['metadata.content.modified'],
         data=environ['wsgi.input'],

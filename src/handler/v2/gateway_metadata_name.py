@@ -1,6 +1,6 @@
 import json
 import util.handler
-import util.content_id
+import util.metadata_id
 import controller.s3
 
 
@@ -84,7 +84,7 @@ def _patch_metadata_content_name(environ, params):
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        object_key=util.content_id.object_key(params['metadata.content.id']),
+        object_key=util.metadata_id.object_key(params['metadata.content.id']),
         new_name=params['new.metadata.content.name'],
     )
     if renamed_content is None:

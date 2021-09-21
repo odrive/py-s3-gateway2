@@ -1,6 +1,6 @@
 import json
 import util.handler
-import util.content_id
+import util.metadata_id
 import controller.s3
 
 
@@ -73,7 +73,7 @@ def _patch_metadata_content_parent(environ, params):
         }
 
     # Check source.
-    if util.content_id.object_key(params['metadata.content.id'])[-1] == '/':
+    if util.metadata_id.object_key(params['metadata.content.id'])[-1] == '/':
         # Not allowed to move folder.
         return {
             'code': '403',
@@ -90,8 +90,8 @@ def _patch_metadata_content_parent(environ, params):
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        object_key=util.content_id.object_key(params['metadata.content.id']),
-        new_prefix=util.content_id.object_key(params['new.metadata.content.parent.id'])
+        object_key=util.metadata_id.object_key(params['metadata.content.id']),
+        new_prefix=util.metadata_id.object_key(params['new.metadata.content.parent.id'])
     )
     if moved_content is None:
         return {

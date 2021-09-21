@@ -1,4 +1,4 @@
-import util.content_id
+import util.metadata_id
 import util.handler
 import controller.s3
 
@@ -52,7 +52,7 @@ def _get_file(environ, params):
     # Validate.
     #
 
-    object_key = util.content_id.object_key(params['metadata.content.id'])
+    object_key = util.metadata_id.object_key(params['metadata.content.id'])
     if object_key[-1] == '/':
         # Not file.
         return {
