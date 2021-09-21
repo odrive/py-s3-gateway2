@@ -58,8 +58,8 @@ def _post(environ, params):
 
     # Load body.
     body = json.load(environ['wsgi.input'])
-    params['gateway.content.name'] = body.get('gateway.metadata.name')
-    params['gateway.content.modified'] = body.get('gateway.metadata.modified')
+    params['gateway.metadata.name'] = body.get('gateway.metadata.name')
+    params['gateway.metadata.modified'] = body.get('gateway.metadata.modified')
 
     #
     # Validate.
