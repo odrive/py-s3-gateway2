@@ -26,7 +26,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_gateway_metadata_folder' if params['gateway.metadata.id'] else ''
+        '_gateway_metadata' if params['gateway.metadata.id'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -119,7 +119,7 @@ def _post(environ, params):
 @util.handler.load_access_token
 @util.handler.load_s3_config
 @util.handler.handle_s3_exception
-def _post_gateway_metadata_folder(environ, params):
+def _post_gateway_metadata(environ, params):
 
     #
     # Load.
