@@ -39,14 +39,14 @@ def handle(environ):
 
 
 # Move file or folder.
-# PATCH /v2/gateway_metadata_parent/<gateway.metadata.id>
+# PUT /v2/gateway_metadata_parent/<gateway.metadata.id>
 @util.handler.handle_unexpected_exception
 @util.handler.limit_usage
 @util.handler.handle_requests_exception
 @util.handler.load_access_token
 @util.handler.load_s3_config
 @util.handler.handle_s3_exception
-def _patch_gateway_metadata(environ, params):
+def _put_gateway_metadata(environ, params):
     assert params.get('gateway.metadata.id')
 
     #
@@ -102,5 +102,7 @@ def _patch_gateway_metadata(environ, params):
         'code': '200',
         'message': 'ok',
         'contentType': 'application/json',
-        'content': json.dumps(result)
+        'content': json.dumps({
+            'gateway.metadata.parent.id': result['gateway.metadata.parent.id'],
+        })
     }

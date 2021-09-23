@@ -32,6 +32,7 @@ def create_file(region, host, access_key, access_key_secret, bucket,
         'gateway.metadata.type': 'file',
         'gateway.metadata.name': file_name,
         'gateway.metadata.modified': modified,
+        'gateway.metadata.parent.id': None,
 
         'gateway.metadata.file.size': response_header['Content-Length'],
         'gateway.metadata.file.hash': response_header['ETag'],
@@ -70,7 +71,8 @@ def create_folder(region, host, access_key, access_key_secret, bucket, key_prefi
         'gateway.metadata.id': util.metadata_id.metadata_id(object_key),
         'gateway.metadata.type': 'folder',
         'gateway.metadata.name': folder_name,
-        'gateway.metadata.modified': None
+        'gateway.metadata.modified': None,
+        'gateway.metadata.parent.id': None,
     }
 
 
@@ -204,6 +206,7 @@ def get_file_metadata(region, host, access_key, access_key_secret, bucket, objec
         'gateway.metadata.type': 'file',
         'gateway.metadata.name': util.metadata_id.object_name(object_key),
         'gateway.metadata.modified': last_modified,
+        'gateway.metadata.parent.id': None,
 
         'gateway.metadata.file.size': result['Content-Length'],
         'gateway.metadata.file.hash': result['ETag'],
@@ -303,6 +306,7 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
             'gateway.metadata.type': 'file',
             'gateway.metadata.name': name,
             'gateway.metadata.modified': modified,
+            'gateway.metadata.parent.id': None,
 
             'gateway.metadata.file.hash': file_obj['ETag'],
             'gateway.metadata.file.size': file_obj['Size'],
@@ -315,7 +319,8 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
             'gateway.metadata.id': util.metadata_id.metadata_id(prefix['Prefix']),
             'gateway.metadata.type': 'folder',
             'gateway.metadata.name': name,
-            'gateway.metadata.modified': None
+            'gateway.metadata.modified': None,
+            'gateway.metadata.parent.id': None,
         })
 
     # add continuation token to data
@@ -403,6 +408,7 @@ def move(region, host, access_key, access_key_secret, bucket, object_key, new_pr
         'gateway.metadata.type': 'file',
         'gateway.metadata.name': util.metadata_id.object_name(new_object_key),
         'gateway.metadata.modified': modified,
+        'gateway.metadata.parent.id': None,
 
         'gateway.metadata.file.size': source_object['gateway.metadata.file.size'],
         'gateway.metadata.file.hash': copy_object_response['CopyObjectResult']['ETag'],
@@ -479,6 +485,7 @@ def rename(region, host, access_key, access_key_secret, bucket, object_key, new_
         'gateway.metadata.type': 'file',
         'gateway.metadata.name': new_name,
         'gateway.metadata.modified': modified,
+        'gateway.metadata.parent.id': None,
 
         'gateway.metadata.file.size': int(source_object['Content-Length']),
         'gateway.metadata.file.hash': copy_object_response['CopyObjectResult']['ETag'],
@@ -515,6 +522,7 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
         'gateway.metadata.type': 'file',
         'gateway.metadata.name': util.metadata_id.object_name(object_key),
         'gateway.metadata.modified': modified,
+        'gateway.metadata.parent.id': None,
 
         'gateway.metadata.file.hash': response_header['ETag'],
         'gateway.metadata.file.size': response_header['Content-Length'],
