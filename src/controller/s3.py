@@ -34,7 +34,7 @@ def create_file(region, host, access_key, access_key_secret, bucket,
         'gateway.metadata.modified': modified,
         'gateway.metadata.parent.id': None,
 
-        'gateway.metadata.file.size': response_header['Content-Length'],
+        'gateway.metadata.file.size': int(response_header['Content-Length']),
         'gateway.metadata.file.hash': response_header['ETag'],
     }
 
@@ -208,7 +208,7 @@ def get_file_metadata(region, host, access_key, access_key_secret, bucket, objec
         'gateway.metadata.modified': last_modified,
         'gateway.metadata.parent.id': None,
 
-        'gateway.metadata.file.size': result['Content-Length'],
+        'gateway.metadata.file.size': int(result['Content-Length']),
         'gateway.metadata.file.hash': result['ETag'],
     }
 
@@ -309,7 +309,7 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
             'gateway.metadata.parent.id': None,
 
             'gateway.metadata.file.hash': file_obj['ETag'],
-            'gateway.metadata.file.size': file_obj['Size'],
+            'gateway.metadata.file.size': int(file_obj['Size']),
         })
 
     # convert folder list to content resource
@@ -525,7 +525,7 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
         'gateway.metadata.parent.id': None,
 
         'gateway.metadata.file.hash': response_header['ETag'],
-        'gateway.metadata.file.size': response_header['Content-Length'],
+        'gateway.metadata.file.size': int(response_header['Content-Length']),
     }
 
 
