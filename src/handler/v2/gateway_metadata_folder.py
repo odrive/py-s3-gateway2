@@ -1,6 +1,6 @@
 import json
 import util.handler
-import util.content_id
+import util.metadata_id
 import controller.s3
 
 
@@ -12,8 +12,8 @@ def handle(environ):
 
     # PATH_INFO
     params = {
-        # URI /v2/metadata_folder/<content.id>
-        'metadata.content.id': environ['PATH_INFO'][20:] if len(environ['PATH_INFO']) > 20 else None,
+        # URI /v2/gateway_metadata_folder/<gateway.metadata.id>
+        'gateway.metadata.id': environ['PATH_INFO'][28:] if len(environ['PATH_INFO']) > 28 else None,
     }
 
     #
@@ -26,7 +26,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_metadata_folder' if params['metadata.content.id'] else ''
+        '_gateway_metadata' if params['gateway.metadata.id'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -39,7 +39,7 @@ def handle(environ):
 
 
 # Create root sub folder.
-# POST /v2/metadata_folder
+# POST /v2/gateway_metadata_folder
 @util.handler.handle_unexpected_exception
 @util.handler.limit_usage
 @util.handler.handle_requests_exception
@@ -52,36 +52,36 @@ def _post(environ, params):
     #
 
     params.update({
-        'metadata.content.name': None,
-        'metadata.content.modified': None,
+        'gateway.metadata.name': None,
+        'gateway.metadata.modified': None,
     })
 
     # Load body.
     body = json.load(environ['wsgi.input'])
-    params['metadata.content.name'] = body.get('metadata.content.name')
-    params['metadata.content.modified'] = body.get('metadata.content.modified')
+    params['gateway.metadata.name'] = body.get('gateway.metadata.name')
+    params['gateway.metadata.modified'] = body.get('gateway.metadata.modified')
 
     #
     # Validate.
     #
 
     # Validate name.
-    if params['metadata.content.name'] is None:
+    if params['gateway.metadata.name'] is None:
         return {
             'code': '400',
-            'message': 'Missing folder.name.'
+            'message': 'Missing gateway.metadata.name.'
         }
 
-    # S3 does not support modified. So igmore.
-    # if params['metadata.content.modified'] is None:
+    # S3 does not support modified. So ignore.
+    # if params['gateway.metadata.modified'] is None:
     #     return {
     #         'code': '400',
-    #         'message': 'Missing content.modified.'
+    #         'message': 'Missing gateway.metadata.modified.'
     #     }
-    # if not isinstance(params['metadata.content.modified'], int):
+    # if not isinstance(params['gateway.metadata.modified'], int):
     #     return {
     #         'code': '400',
-    #         'message': 'Invalid content.modified.'
+    #         'message': 'Invalid gateway.metadata.modified.'
     #     }
 
     #
@@ -95,7 +95,7 @@ def _post(environ, params):
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
         key_prefix=None,
-        folder_name=params['metadata.content.name']
+        folder_name=params['gateway.metadata.name']
     )
     if new_folder is None:
         return {
@@ -112,50 +112,50 @@ def _post(environ, params):
 
 
 # Create sub folder.
-# POST /v2/metadata_folder/<content.id>
+# POST /v2/gateway_metadata_folder/<gateway.metadata.id>
 @util.handler.handle_unexpected_exception
 @util.handler.limit_usage
 @util.handler.handle_requests_exception
 @util.handler.load_access_token
 @util.handler.load_s3_config
 @util.handler.handle_s3_exception
-def _post_metadata_folder(environ, params):
+def _post_gateway_metadata(environ, params):
 
     #
     # Load.
     #
 
     params.update({
-        'metadata.content.name': None,
-        'metadata.content.modified': None,
+        'gateway.metadata.name': None,
+        'gateway.metadata.modified': None,
     })
 
     # Load body.
     body = json.load(environ['wsgi.input'])
-    params['metadata.content.name'] = body.get('metadata.content.name')
-    # params['metadata.content.modified'] = body.get('metadata.content.modified')
+    params['gateway.metadata.name'] = body.get('gateway.metadata.name')
+    # params['gateway.metadata.modified'] = body.get('gateway.metadata.modified')
 
     #
     # Validate.
     #
 
     # Validate name.
-    if params['metadata.content.name'] is None:
+    if params['gateway.metadata.name'] is None:
         return {
             'code': '400',
-            'message': 'Missing folder.name.'
+            'message': 'Missing gateway.metadata.name.'
         }
 
-    # S3 does not support modified. So igmore.
-    # if params['metadata.content.modified'] is None:
+    # S3 does not support modified. So ignore.
+    # if params['gateway.metadata.modified'] is None:
     #     return {
     #         'code': '400',
-    #         'message': 'Missing content.modified.'
+    #         'message': 'Missing gateway.metadata.modified.'
     #     }
-    # if not isinstance(params['metadata.content.modified'], int):
+    # if not isinstance(params['gateway.metadata.modified'], int):
     #     return {
     #         'code': '400',
-    #         'message': 'Invalid content.modified.'
+    #         'message': 'Invalid gateway.metadata.modified.'
     #     }
 
     #
@@ -168,8 +168,8 @@ def _post_metadata_folder(environ, params):
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        key_prefix=util.content_id.object_key(params['metadata.content.id']),
-        folder_name=params['metadata.content.name']
+        key_prefix=util.metadata_id.object_key(params['gateway.metadata.id']),
+        folder_name=params['gateway.metadata.name']
     )
     if new_folder is None:
         return {

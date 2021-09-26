@@ -118,7 +118,7 @@ All gateways implement the same API except for authorization. Use the S3 Gateway
 
 ### Signing into S3 Gateway
 ```
-POST /v2/auth
+POST /v2/gateway_auth
 ```
 **Request Body JSON**
 
@@ -134,8 +134,8 @@ Property | Description
 
 Property | Description
 ---------|------------
-`access.token` | Required AUTHORIZATION header for subsequent API requests. Does not expire.
-`root.content.id` | `''` Session root folder ID is an empty string.
+`gateway.auth.access.token` | Required AUTHORIZATION header for subsequent API requests. Does not expire.
+`gateway.auth.metadata.id` | `''` Session root folder ID is an empty string.
 
 **Response Status**
 

@@ -14,8 +14,8 @@ def handle(environ):
 
     params = {
         # From PATH_INFO
-        # /v2/auth/<access.token>
-        'auth.access.token': environ['PATH_INFO'][9:] if len(environ['PATH_INFO']) > 9 else None,
+        # /v2/gateway_auth/<gateway.auth.access.token>
+        'gateway.auth.access.token': environ['PATH_INFO'][17:] if len(environ['PATH_INFO']) > 17 else None,
     }
 
     #
@@ -28,7 +28,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_auth' if params['auth.access.token'] else ''
+        '_gateway_auth' if params['gateway.auth.access.token'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -41,7 +41,7 @@ def handle(environ):
 
 
 # Sign in.
-# POST /v2/auth
+# POST /v2/gateway_auth
 @util.handler.handle_unexpected_exception
 @util.handler.limit_usage
 @util.handler.handle_requests_exception
@@ -124,13 +124,13 @@ def _post(environ, params):
         'config.bucket': params['bucket'],
         'config.access.key': params['key'],
         'config.access.key.secret': params['secret'],
-        'config.root.content.id': '',
+        'config.root.metadata.id': '',
     }
     assert controller.datastore.put(access_token, config, 'registration')
     response = {
-        'auth.access.token': access_token,
-        'auth.refresh.token': None,
-        'auth.metadata.content.id': config['config.root.content.id']
+        'gateway.auth.access.token': access_token,
+        'gateway.auth.refresh.token': None,
+        'gateway.auth.metadata.id': config['config.root.metadata.id']
     }
     return {
         'code': '200',
@@ -141,12 +141,12 @@ def _post(environ, params):
 
 
 # Sign out.
-# DELETE /v2/auth/<access.token>
+# DELETE /v2/gateway_auth/<gateway.auth.access.token>
 @util.handler.handle_unexpected_exception
 @util.handler.limit_usage
 @util.handler.handle_requests_exception
-def _delete_auth(environ, params):
-    assert params.get('auth.access.token')
+def _delete_gateway_auth(environ, params):
+    assert params.get('gateway.auth.access.token')
 
     #
     # params
@@ -158,7 +158,7 @@ def _delete_auth(environ, params):
     })
 
     # load datastore
-    params['registration'] = controller.datastore.get(params['auth.access.token'], 'registration')
+    params['registration'] = controller.datastore.get(params['gateway.auth.access.token'], 'registration')
 
     #
     # validate
@@ -176,7 +176,7 @@ def _delete_auth(environ, params):
     #
 
     # delete registration
-    controller.datastore.delete(params['auth.access.token'], 'registration')
+    controller.datastore.delete(params['gateway.auth.access.token'], 'registration')
     return {
         'code': '200',
         'message': 'OK'
