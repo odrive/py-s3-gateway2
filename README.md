@@ -28,7 +28,7 @@ setup/setup_mac.sh
 # /bin/config.json
 {
   "controller.datastore.path": "datastore",
-  "util.handler.usage.interval.seconds": 1000,
+  "util.handler.usage.interval.seconds": 1,
   "util.handler.usage.count.max": 60,
   "util.s3.log.enable": true,
   "util.s3.log.file.path": "s3.log"

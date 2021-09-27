@@ -1,5 +1,5 @@
 {
-  "util.handler.usage.interval.seconds": 1000,
+  "util.handler.usage.interval.seconds": 1,
   "util.handler.usage.count.max": 60,
   "wsgi.log.enable": true,
   "wsgi.log.path": "server.log",
