@@ -294,6 +294,10 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
         # get name from object key
         name = file_obj['Key'].split('/')[-1]  # extract name from key
 
+        # skip empty names
+        if not name:
+            continue
+
         # calculate last modified - millis since epoch
         modified = int(
             (datetime.strptime(file_obj['LastModified'], '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -314,7 +318,15 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
 
     # convert folder list to content resource
     for prefix in prefix_list:
-        name = prefix['Prefix'].rstrip('/').split('/')[-1]  # extract name from prefix
+
+        # extract name from prefix
+        name = prefix['Prefix'].rstrip('/').split('/')[-1]
+
+        # skip empty names
+        if not name:
+            continue
+
+        # assemble folder metadata resource
         content_listing.append({
             'gateway.metadata.id': util.metadata_id.metadata_id(prefix['Prefix']),
             'gateway.metadata.type': 'folder',
