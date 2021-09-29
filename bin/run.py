@@ -35,7 +35,7 @@ cherrypy.tree.graft(dispatcher.dispatch, '/')
 
 # configure cherrypy
 cherrypy.config.update({
-    'server.socket_port': 9083,
+    'server.socket_port': 9084,
     'server.socket_host': '127.0.0.1',
     'server.thread_pool': 30,
     # remove any limit on request body size; default is 100MB; Use 2147483647 for 2GB

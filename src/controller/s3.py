@@ -314,6 +314,10 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
 
     # convert folder list to content resource
     for prefix in prefix_list:
+        if prefix['Prefix'] == '/':
+            # Skip root.
+            continue
+
         name = prefix['Prefix'].rstrip('/').split('/')[-1]  # extract name from prefix
         content_listing.append({
             'gateway.metadata.id': util.metadata_id.metadata_id(prefix['Prefix']),
