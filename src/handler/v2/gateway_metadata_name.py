@@ -97,6 +97,7 @@ def _put_gateway_metadata(environ, params):
         'message': 'ok',
         'contentType': 'application/json',
         'content': json.dumps({
+            'gateway.metadata.id': result['gateway.metadata.id'],
             'gateway.metadata.name': result['gateway.metadata.name']
         })
     }
