@@ -1,7 +1,7 @@
 import json
-import util.handler
-import util.metadata_id
-import controller.s3
+import s3_gateway.util.handler
+import s3_gateway.util.metadata_id
+import s3_gateway.controller.s3
 
 
 def handle(environ):
@@ -33,19 +33,19 @@ def handle(environ):
 
     # Unknown.
     return {
-        'code': '404',
-        'message': 'Not found.'
+        'code': '400',
+        'message': 'Invalid Endpoint'
     }
 
 
 # Move file or folder.
 # PUT /v2/gateway_metadata_parent/<gateway.metadata.id>
-@util.handler.handle_unexpected_exception
-@util.handler.limit_usage
-@util.handler.handle_requests_exception
-@util.handler.load_access_token
-@util.handler.load_s3_config
-@util.handler.handle_s3_exception
+@s3_gateway.util.handler.handle_unexpected_exception
+@s3_gateway.util.handler.limit_usage
+@s3_gateway.util.handler.handle_requests_exception
+@s3_gateway.util.handler.load_access_token
+@s3_gateway.util.handler.load_s3_config
+@s3_gateway.util.handler.handle_s3_exception
 def _put_gateway_metadata(environ, params):
     assert params.get('gateway.metadata.id')
 
@@ -73,7 +73,7 @@ def _put_gateway_metadata(environ, params):
         }
 
     # Check source.
-    if util.metadata_id.object_key(params['gateway.metadata.id'])[-1] == '/':
+    if s3_gateway.util.metadata_id.object_key(params['gateway.metadata.id'])[-1] == '/':
         # Not allowed to move folder.
         return {
             'code': '403',
@@ -84,14 +84,14 @@ def _put_gateway_metadata(environ, params):
     # Execute.
     #
 
-    result = controller.s3.move(
+    result = s3_gateway.controller.s3.move(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        object_key=util.metadata_id.object_key(params['gateway.metadata.id']),
-        new_prefix=util.metadata_id.object_key(params['new.gateway.metadata.parent.id'])
+        object_key=s3_gateway.util.metadata_id.object_key(params['gateway.metadata.id']),
+        new_prefix=s3_gateway.util.metadata_id.object_key(params['new.gateway.metadata.parent.id'])
     )
     if result is None:
         return {

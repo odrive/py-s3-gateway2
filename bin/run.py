@@ -1,7 +1,7 @@
 import os
 import json
 import cherrypy
-import dispatcher
+from s3_gateway import dispatcher
 
 #
 # Configure server.
@@ -14,13 +14,13 @@ with open(os.path.join(os.getcwd(), 'config.json'), 'r') as data_file:
     config = json.load(data_file)
 
 # Convert relative paths to absolute paths.
-config['wsgi.log.path'] = os.path.abspath(os.path.expanduser(config['wsgi.log.path']))
-config['controller.datastore.path'] = os.path.abspath(os.path.expanduser(config['controller.datastore.path']))
-config['util.s3.log.file.path'] = os.path.abspath(os.path.expanduser(config['util.s3.log.file.path']))
+config['s3_gateway.wsgi.log.path'] = os.path.abspath(os.path.expanduser(config['s3_gateway.wsgi.log.path']))
+config['s3_gateway.controller.datastore.path'] = os.path.abspath(os.path.expanduser(config['s3_gateway.controller.datastore.path']))
+config['s3_gateway.util.s3.log.file.path'] = os.path.abspath(os.path.expanduser(config['s3_gateway.util.s3.log.file.path']))
 
 # Ensure folder ready.
-if not os.path.exists(config['controller.datastore.path']):
-    os.makedirs(config['controller.datastore.path'])
+if not os.path.exists(config['s3_gateway.controller.datastore.path']):
+    os.makedirs(config['s3_gateway.controller.datastore.path'])
 
 # Load config.
 dispatcher.update_config(config)

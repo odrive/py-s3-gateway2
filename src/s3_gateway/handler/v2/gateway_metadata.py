@@ -1,7 +1,9 @@
 import json
-import util.handler
-import util.metadata_id
-import controller.s3
+import s3_gateway.util.handler
+import s3_gateway.util.metadata_id
+import s3_gateway.util.s3
+import s3_gateway.controller.datastore
+import s3_gateway.controller.s3
 
 
 def handle(environ):
@@ -32,8 +34,8 @@ def handle(environ):
 
     # Unknown.
     return {
-        'code': '404',
-        'message': 'Not found.'
+        'code': '400',
+        'message': 'Invalid Endpoint'
     }
 
 
@@ -49,19 +51,19 @@ def _delete(environ, params):
 
 # Delete file or folder.
 # DELETE /v2/gateway_metadata/<gateway.metadata.id>
-@util.handler.handle_unexpected_exception
-@util.handler.limit_usage
-@util.handler.handle_requests_exception
-@util.handler.load_access_token
-@util.handler.load_s3_config
-@util.handler.handle_s3_exception
+@s3_gateway.util.handler.handle_unexpected_exception
+@s3_gateway.util.handler.limit_usage
+@s3_gateway.util.handler.handle_requests_exception
+@s3_gateway.util.handler.load_access_token
+@s3_gateway.util.handler.load_s3_config
+@s3_gateway.util.handler.handle_s3_exception
 def _delete_gateway_metadata(environ, params):
     assert params.get('gateway.metadata.id')
 
     # Delete file.
-    object_key = util.metadata_id.object_key(params['gateway.metadata.id'])
+    object_key = s3_gateway.util.metadata_id.object_key(params['gateway.metadata.id'])
     if object_key:
-        result = controller.s3.delete_file(
+        result = s3_gateway.controller.s3.delete_file(
             region=params['config.region'],
             host=params['config.host'],
             access_key=params['config.access.key'],
@@ -83,9 +85,9 @@ def _delete_gateway_metadata(environ, params):
         }
 
     # Delete folder.
-    prefix = util.metadata_id.object_key(params['gateway.metadata.id'])
+    prefix = s3_gateway.util.metadata_id.object_key(params['gateway.metadata.id'])
     if prefix:
-        result = controller.s3.delete_folder(
+        result = s3_gateway.controller.s3.delete_folder(
             region=params['config.region'],
             host=params['config.host'],
             access_key=params['config.access.key'],
@@ -115,7 +117,7 @@ def _delete_gateway_metadata(environ, params):
 
 # Get metadata for root folder.
 # GET /v2/gateway_metadata
-@util.handler.limit_usage
+@s3_gateway.util.handler.limit_usage
 def _get(environ, params):
     # Get root folder metadata.
     return {
@@ -133,12 +135,12 @@ def _get(environ, params):
 
 # Get file or folder metadata.
 # GET /v2/gateway_metadata/<gateway.metadata.id>
-@util.handler.handle_unexpected_exception
-@util.handler.limit_usage
-@util.handler.handle_requests_exception
-@util.handler.load_access_token
-@util.handler.load_s3_config
-@util.handler.handle_s3_exception
+@s3_gateway.util.handler.handle_unexpected_exception
+@s3_gateway.util.handler.limit_usage
+@s3_gateway.util.handler.handle_requests_exception
+@s3_gateway.util.handler.load_access_token
+@s3_gateway.util.handler.load_s3_config
+@s3_gateway.util.handler.handle_s3_exception
 def _get_gateway_metadata(environ, params):
     assert params.get('gateway.metadata.id')
 
@@ -154,7 +156,7 @@ def _get_gateway_metadata(environ, params):
     # Execute.
     #
 
-    object_key = util.metadata_id.object_key(params['gateway.metadata.id'])
+    object_key = s3_gateway.util.metadata_id.object_key(params['gateway.metadata.id'])
 
     # Handle folder.
     if object_key[-1] == '/':
@@ -163,7 +165,7 @@ def _get_gateway_metadata(environ, params):
             'message': 'ok',
             'contentType': 'application/json',
             'content': json.dumps({
-                'gateway.metadata.id': util.metadata_id.metadata_id(object_key),
+                'gateway.metadata.id': s3_gateway.util.metadata_id.metadata_id(object_key),
                 'gateway.metadata.type': 'folder',
                 'gateway.metadata.name': params['prefix'].rstrip('/').split('/')[-1],
                 'gateway.metadata.modified': None,
@@ -172,7 +174,7 @@ def _get_gateway_metadata(environ, params):
 
     # Handle file.
     assert object_key[-1] != '/'
-    result = controller.s3.get_file_metadata(
+    result = s3_gateway.controller.s3.get_file_metadata(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],

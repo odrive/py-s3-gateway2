@@ -937,7 +937,7 @@ def update_config(config):
 
 
 _config = {
-    'log.file.path': None,
+    'log.file.path': 's3.log',
     'log.enable': False
 }
 

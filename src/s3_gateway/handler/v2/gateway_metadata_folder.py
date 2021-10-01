@@ -1,7 +1,7 @@
 import json
-import util.handler
-import util.metadata_id
-import controller.s3
+import s3_gateway.util.metadata_id
+import s3_gateway.util.handler
+import s3_gateway.controller.s3
 
 
 def handle(environ):
@@ -33,19 +33,19 @@ def handle(environ):
 
     # Unknown.
     return {
-        'code': '404',
-        'message': 'Not found.'
+        'code': '400',
+        'message': 'Invalid Endpoint'
     }
 
 
 # Create root sub folder.
 # POST /v2/gateway_metadata_folder
-@util.handler.handle_unexpected_exception
-@util.handler.limit_usage
-@util.handler.handle_requests_exception
-@util.handler.load_access_token
-@util.handler.load_s3_config
-@util.handler.handle_s3_exception
+@s3_gateway.util.handler.handle_unexpected_exception
+@s3_gateway.util.handler.limit_usage
+@s3_gateway.util.handler.handle_requests_exception
+@s3_gateway.util.handler.load_access_token
+@s3_gateway.util.handler.load_s3_config
+@s3_gateway.util.handler.handle_s3_exception
 def _post(environ, params):
     #
     # Load.
@@ -88,7 +88,7 @@ def _post(environ, params):
     # Execute.
     #
 
-    new_folder = controller.s3.create_folder(
+    new_folder = s3_gateway.controller.s3.create_folder(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],
@@ -113,12 +113,12 @@ def _post(environ, params):
 
 # Create sub folder.
 # POST /v2/gateway_metadata_folder/<gateway.metadata.id>
-@util.handler.handle_unexpected_exception
-@util.handler.limit_usage
-@util.handler.handle_requests_exception
-@util.handler.load_access_token
-@util.handler.load_s3_config
-@util.handler.handle_s3_exception
+@s3_gateway.util.handler.handle_unexpected_exception
+@s3_gateway.util.handler.limit_usage
+@s3_gateway.util.handler.handle_requests_exception
+@s3_gateway.util.handler.load_access_token
+@s3_gateway.util.handler.load_s3_config
+@s3_gateway.util.handler.handle_s3_exception
 def _post_gateway_metadata(environ, params):
 
     #
@@ -162,13 +162,13 @@ def _post_gateway_metadata(environ, params):
     # Execute.
     #
 
-    new_folder = controller.s3.create_folder(
+    new_folder = s3_gateway.controller.s3.create_folder(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        key_prefix=util.metadata_id.object_key(params['gateway.metadata.id']),
+        key_prefix=s3_gateway.util.metadata_id.object_key(params['gateway.metadata.id']),
         folder_name=params['gateway.metadata.name']
     )
     if new_folder is None:

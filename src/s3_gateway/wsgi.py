@@ -30,7 +30,7 @@ def dispatch(environ, start_response):
     resource_module = _get_resource_module(params['version'], params['resource'])
     if resource_module is None:
         # handle unknown module
-        return _send_response(start_response, '404', 'Resource Not Found')
+        return _send_response(start_response, '400', 'Invalid Endpoint')
 
     # Delegate.
     resource_handler = getattr(resource_module, 'handle')
@@ -75,7 +75,7 @@ def _get_resource_module(version, resource):
     # load from future if specified
     if version == 'future':
         try:
-            handler_module = importlib.import_module('handler.future.' + resource)
+            handler_module = importlib.import_module('s3_gateway.handler.future.' + resource)
         except ImportError:
             # downgrade version to next lookup
             version = 'downgrade'
@@ -83,7 +83,7 @@ def _get_resource_module(version, resource):
     # load from v2 if specified or downgrading
     if version in ['v2', 'downgrade']:
         try:
-            handler_module = importlib.import_module('handler.v2.' + resource)
+            handler_module = importlib.import_module('s3_gateway.handler.v2.' + resource)
         except ImportError:
             pass
 
@@ -158,8 +158,8 @@ def update_config(config):
 
 
 _config = {
-    'log.enable': None,
-    'log.path': None,
+    'log.enable': False,
+    'log.path': 'server.log',
 }
 
 _logger = None
