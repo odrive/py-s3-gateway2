@@ -8,7 +8,7 @@ source env/bin/activate
 python3 -m pip install --upgrade pip
 
 # install dependencies to virtual environment
-python3 -m pip install --upgrade -r dependencies.pip
+python3 -m pip install --force-reinstall -r dependencies.pip
 
 # set up python path
 export PYTHONPATH="$(dirname $(pwd))/src:$PYTHONPATH"
