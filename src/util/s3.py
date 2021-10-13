@@ -471,10 +471,43 @@ def log_http_request(send_func):
 
         # make http call
         start_time = time.time()
-        response = send_func(*args, **kwargs)
-        end_time = time.time()
+        try:
+            response = send_func(*args, **kwargs)
+
+        except requests.Timeout as e:
+
+            # Log request timeout
+            end_time = time.time()
+            if _config['log.file.path']:
+                logging.getLogger(__name__).info(
+                    '{:.3f} [{}] {} {} {}'.format(
+                        end_time - start_time,
+                        'ERROR',
+                        e.request.method,
+                        e.request.url,
+                        'Request timeout.'
+                    )
+                )
+            raise
+
+        except requests.ConnectionError as e:
+
+            # Log connection error
+            end_time = time.time()
+            if _config['log.file.path']:
+                logging.getLogger(__name__).info(
+                    '{:.3f} [{}] {} {} {}'.format(
+                        end_time - start_time,
+                        'ERROR',
+                        e.request.method,
+                        e.request.url,
+                        'Connection connect.'
+                    )
+                )
+            raise
 
         # log http response
+        end_time = time.time()
         if _config['log.file.path']:
             logging.getLogger(__name__).info(
                 '{:.3f} [{}] {} {} {}'.format(
@@ -937,7 +970,7 @@ def update_config(config):
 
 
 _config = {
-    'log.file.path': None,
+    'log.file.path': 's3.log',
     'log.enable': False
 }
 
