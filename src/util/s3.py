@@ -938,7 +938,7 @@ def _send_sig4_request(region, host, access_key, access_key_secret,
         headers=headers,
         data=data,
         stream=stream,
-        timeout=60
+        timeout=(_config['request.connection.timeout'], _config['requests.read.timeout'])
     )
     return response
 
@@ -971,7 +971,9 @@ def update_config(config):
 
 _config = {
     'log.file.path': 's3.log',
-    'log.enable': False
+    'log.enable': False,
+    'request.connection.timeout': 10,
+    'requests.read.timeout': 30
 }
 
 
