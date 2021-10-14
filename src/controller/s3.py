@@ -25,7 +25,8 @@ def create_file(region, host, access_key, access_key_secret, bucket,
     if response_header is None:
         # Not allowed.
         return None
-
+    if response_header.get('Content-Length'):
+        size = int(response_header['Content-Length'])
     # Return s3_obj as metadata.
     return {
         'gateway.metadata.id': util.metadata_id.metadata_id(object_key),
@@ -34,7 +35,7 @@ def create_file(region, host, access_key, access_key_secret, bucket,
         'gateway.metadata.modified': modified,
         'gateway.metadata.parent.id': None,
 
-        'gateway.metadata.file.size': int(response_header['Content-Length']),
+        'gateway.metadata.file.size': size,
         'gateway.metadata.file.hash': response_header['ETag'],
     }
 
@@ -552,7 +553,7 @@ def _upload_file(region, host, access_key, access_key_secret, bucket, object_key
             bucket=bucket,
             object_key=object_key,
             content_length=size,
-            data=data
+            data=StreamingIterator(size, data)
             # file_like_object=StreamingIterator(size, file_like_object)
         )
 
