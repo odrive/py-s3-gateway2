@@ -1,9 +1,9 @@
 {
-  "util.handler.usage.interval.seconds": 1,
-  "util.handler.usage.count.max": 60,
-  "wsgi.log.enable": true,
-  "wsgi.log.path": "server.log",
-  "controller.datastore.path": "datastore",
-  "util.s3.log.enable": true,
-  "util.s3.log.file.path": "s3.log"
+  "s3_gateway.util.handler.usage.interval.seconds": 1,
+  "s3_gateway.util.handler.usage.count.max": 60,
+  "s3_gateway.wsgi.log.enable": true,
+  "s3_gateway.wsgi.log.path": "server.log",
+  "s3_gateway.controller.datastore.path": "datastore",
+  "s3_gateway.util.s3.log.enable": true,
+  "s3_gateway.util.s3.log.file.path": "s3.log"
 }

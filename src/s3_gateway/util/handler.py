@@ -3,9 +3,9 @@ import urllib
 import urllib.parse
 import requests
 import traceback
-import controller.datastore
-import util.s3
 import xmltodict
+import s3_gateway.util.s3
+import s3_gateway.controller.datastore
 
 
 def handle_requests_exception(dispatch_func):
@@ -59,7 +59,7 @@ def load_access_token(dispatch_func):
 def load_s3_config(dispatch_func):
     def wrapper(environ, params):
         assert params['access.token']
-        config = controller.datastore.get(params['access.token'], 'registration')
+        config = s3_gateway.controller.datastore.get(params['access.token'], 'registration')
 
         # Validate
         if config is None:
@@ -87,7 +87,7 @@ def handle_s3_exception(dispatch_func):
         try:
             return dispatch_func(*args, **kwargs)
 
-        except util.s3.S3Exception as e:
+        except s3_gateway.util.s3.S3Exception as e:
 
             if e.http_response.status_code == 400:
                 # Parse message.
@@ -221,4 +221,3 @@ _config = {
 
 _usage_start = time.time()
 _usage_count = 0
-

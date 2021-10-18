@@ -5,22 +5,21 @@ import time
 import random
 
 
-# store object to proxygen datastore
-def put(key, object, type):
+def put(key, obj, obj_type):
 
-    file_path = os.path.join(_config['path'], type, key)
+    file_path = os.path.join(_config['path'], obj_type, key)
     temp_path = file_path + '~' + str(random.randint(1, 1000000))
 
     # ensure type folder exists
     try:
-        os.makedirs(os.path.join(_config['path'], type))
+        os.makedirs(os.path.join(_config['path'], obj_type))
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
 
     # write object to temp_path
     with open(temp_path, 'w') as data_file:
-        json.dump(object, data_file, indent=4, sort_keys=True)
+        json.dump(obj, data_file, indent=4, sort_keys=True)
 
     # replace with temp file - last write wins
     try:
@@ -44,10 +43,9 @@ def put(key, object, type):
     return True
 
 
-# get object from proxygen datastore
-def get(key, type, ttl_seconds=0):
+def get(key, obj_type, ttl_seconds=0):
 
-    file_path = os.path.join(_config['path'], type, key)
+    file_path = os.path.join(_config['path'], obj_type, key)
 
     if not os.path.exists(file_path):
         # handle no key for type
@@ -60,7 +58,7 @@ def get(key, type, ttl_seconds=0):
         # return if ttl expired
         if ttl_seconds != 0 and (mod_time + ttl_seconds < time.time()):
             # cleanup
-            delete(key, type)
+            delete(key, obj_type)
             # handle expired
             return None
 
@@ -80,10 +78,9 @@ def get(key, type, ttl_seconds=0):
     return data
 
 
-# delete object in proxygen datastore
-def delete(key, type):
+def delete(key, obj_type):
 
-    path = os.path.join(_config['path'], type, key)
+    path = os.path.join(_config['path'], obj_type, key)
 
     try:
         os.remove(path)
@@ -106,7 +103,7 @@ class DatastoreException(Exception):
 #
 
 _config = {
-    'path': None
+    'path': 'data'
 }
 
 

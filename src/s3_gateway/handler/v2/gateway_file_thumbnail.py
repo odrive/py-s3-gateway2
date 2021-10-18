@@ -1,4 +1,4 @@
-import util.handler
+import s3_gateway.util.handler
 
 
 def handle(environ):
@@ -37,7 +37,7 @@ def handle(environ):
 
 # Download icon.
 # GET /v2/gateway_file_thumbnail/<gateway.metadata.id>
-@util.handler.limit_usage
+@s3_gateway.util.handler.limit_usage
 def _get_gateway_metadata(environ, params):
     return {
         'code': '403',
