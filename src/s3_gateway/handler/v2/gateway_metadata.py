@@ -58,40 +58,18 @@ def _delete(environ, params):
 def _delete_gateway_metadata(environ, params):
     assert params.get('gateway.metadata.id')
 
-    # Delete file.
     object_key = s3_gateway.util.metadata_id.object_key(params['gateway.metadata.id'])
-    if object_key:
-        result = s3_gateway.controller.s3.delete_file(
-            region=params['config.region'],
-            host=params['config.host'],
-            access_key=params['config.access.key'],
-            access_key_secret=params['config.access.key.secret'],
-            bucket=params['config.bucket'],
-            object_key=object_key
-        )
-        if result is False:
-            # Not allowed.
-            return {
-                'code': '403',
-                'message': 'Not allowed.'
-            }
-        
-        # Success
-        return {
-            'code': '200',
-            'message': 'OK'
-        }
+    assert object_key
 
-    # Delete folder.
-    prefix = s3_gateway.util.metadata_id.object_key(params['gateway.metadata.id'])
-    if prefix:
+    if object_key[-1] == '/':
+        # Delete folder.
         result = s3_gateway.controller.s3.delete_folder(
             region=params['config.region'],
             host=params['config.host'],
             access_key=params['config.access.key'],
             access_key_secret=params['config.access.key.secret'],
             bucket=params['config.bucket'],
-            object_prefix=prefix
+            object_prefix=object_key
         )
         if result is False:
             # Not allowed
@@ -106,10 +84,26 @@ def _delete_gateway_metadata(environ, params):
             'message': 'OK'
         }
 
-    # Invalid gateway.metadata.id.
+    # Delete file.
+    result = s3_gateway.controller.s3.delete_file(
+        region=params['config.region'],
+        host=params['config.host'],
+        access_key=params['config.access.key'],
+        access_key_secret=params['config.access.key.secret'],
+        bucket=params['config.bucket'],
+        object_key=object_key
+    )
+    if result is False:
+        # Not allowed.
+        return {
+            'code': '403',
+            'message': 'Not allowed.'
+        }
+        
+    # Success
     return {
-        'code': '400',
-        'message': 'Invalid gateway.metadata.id'
+        'code': '200',
+        'message': 'OK'
     }
 
 
