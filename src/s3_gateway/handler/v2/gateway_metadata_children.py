@@ -59,7 +59,7 @@ def _get(environ, params):
 
     # Query string.
     query_params = urllib.parse.parse_qs(environ.get('QUERY_STRING'))
-    params['page'] = query_params.get('page')
+    params['page'] = query_params['page'][0] if query_params.get('page') else None
 
     #
     # Execute.
@@ -83,8 +83,8 @@ def _get(environ, params):
     return {
         'code': '200',
         'message': 'ok',
-        'header': {
-            'page': continuation_token
+        'headers': {
+            'X-Gateway-Page': continuation_token
         },
         'contentType': 'application/json',
         'content': json.dumps(content_list)
@@ -112,7 +112,7 @@ def _get_gateway_metadata(environ, params):
 
     # Query string.
     query_params = urllib.parse.parse_qs(environ.get('QUERY_STRING'))
-    params['page'] = query_params.get('page')
+    params['page'] = query_params['page'][0] if query_params.get('page') else None
 
     #
     # Validate.
@@ -142,7 +142,7 @@ def _get_gateway_metadata(environ, params):
     return {
         'code': '200',
         'message': 'ok',
-        'header': {
+        'headers': {
             'X-Gateway-Page': continuation_token
         },
         'contentType': 'application/json',
