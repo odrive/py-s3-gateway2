@@ -1,7 +1,7 @@
 import json
-import s3_gateway.util.handler
-import s3_gateway.util.metadata_id
-import s3_gateway.controller.s3
+import s3_gateway2.util.handler
+import s3_gateway2.util.metadata_id
+import s3_gateway2.controller.s3
 
 
 def handle(environ):
@@ -46,12 +46,12 @@ def _post(environ, params):
 
 # Upload file to folder.
 # POST /v2/gateway_metadata_file/<gateway.metadata.id>
-@s3_gateway.util.handler.handle_unexpected_exception
-@s3_gateway.util.handler.limit_usage
-@s3_gateway.util.handler.handle_requests_exception
-@s3_gateway.util.handler.load_access_token
-@s3_gateway.util.handler.load_s3_config
-@s3_gateway.util.handler.handle_s3_exception
+@s3_gateway2.util.handler.handle_unexpected_exception
+@s3_gateway2.util.handler.limit_usage
+@s3_gateway2.util.handler.handle_requests_exception
+@s3_gateway2.util.handler.load_access_token
+@s3_gateway2.util.handler.load_s3_config
+@s3_gateway2.util.handler.handle_s3_exception
 def _post_gateway_metadata(environ, params):
 
     #
@@ -107,12 +107,12 @@ def _post_gateway_metadata(environ, params):
     # Execute request.
     #
 
-    prefix = s3_gateway.util.metadata_id.object_key(params['gateway.metadata.id']) \
+    prefix = s3_gateway2.util.metadata_id.object_key(params['gateway.metadata.id']) \
         if params['gateway.metadata.id'] \
         else None
     if prefix:
         assert prefix[-1] == '/'
-    result = s3_gateway.controller.s3.create_file(
+    result = s3_gateway2.controller.s3.create_file(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],
@@ -141,12 +141,12 @@ def _post_gateway_metadata(environ, params):
 
 # Update file.
 # PUT /v2/gateway_metadata_file/<gateway.metadata.id>
-@s3_gateway.util.handler.handle_unexpected_exception
-@s3_gateway.util.handler.limit_usage
-@s3_gateway.util.handler.handle_requests_exception
-@s3_gateway.util.handler.load_access_token
-@s3_gateway.util.handler.load_s3_config
-@s3_gateway.util.handler.handle_s3_exception
+@s3_gateway2.util.handler.handle_unexpected_exception
+@s3_gateway2.util.handler.limit_usage
+@s3_gateway2.util.handler.handle_requests_exception
+@s3_gateway2.util.handler.load_access_token
+@s3_gateway2.util.handler.load_s3_config
+@s3_gateway2.util.handler.handle_s3_exception
 def _put_gateway_metadata(environ, params):
     assert params.get('gateway.metadata.id')
 
@@ -187,13 +187,13 @@ def _put_gateway_metadata(environ, params):
     #
 
     # Update
-    result = s3_gateway.controller.s3.update_file(
+    result = s3_gateway2.controller.s3.update_file(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        object_key=s3_gateway.util.metadata_id.object_key(params['gateway.metadata.id']),
+        object_key=s3_gateway2.util.metadata_id.object_key(params['gateway.metadata.id']),
         size=params['gateway.metadata.file.size'],
         modified=params['gateway.metadata.modified'],
         data=environ['wsgi.input'],

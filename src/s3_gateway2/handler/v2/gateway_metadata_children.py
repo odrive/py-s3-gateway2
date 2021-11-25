@@ -1,8 +1,8 @@
 import base64
 import json
 import urllib.parse
-import s3_gateway.util.handler
-import s3_gateway.controller.s3
+import s3_gateway2.util.handler
+import s3_gateway2.controller.s3
 
 
 def handle(environ):
@@ -41,12 +41,12 @@ def handle(environ):
 
 # List root.
 # GET /v2/gateway_metadata_children
-@s3_gateway.util.handler.handle_unexpected_exception
-@s3_gateway.util.handler.limit_usage
-@s3_gateway.util.handler.handle_requests_exception
-@s3_gateway.util.handler.load_access_token
-@s3_gateway.util.handler.load_s3_config
-@s3_gateway.util.handler.handle_s3_exception
+@s3_gateway2.util.handler.handle_unexpected_exception
+@s3_gateway2.util.handler.limit_usage
+@s3_gateway2.util.handler.handle_requests_exception
+@s3_gateway2.util.handler.load_access_token
+@s3_gateway2.util.handler.load_s3_config
+@s3_gateway2.util.handler.handle_s3_exception
 def _get(environ, params):
 
     #
@@ -66,7 +66,7 @@ def _get(environ, params):
     #
 
     # List folder content metadata.
-    content_list, continuation_token = s3_gateway.controller.s3.list_content(
+    content_list, continuation_token = s3_gateway2.controller.s3.list_content(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],
@@ -93,12 +93,12 @@ def _get(environ, params):
 
 # List folder.
 # GET /v2/gateway_metadata_children/<gateway.metadata.id>
-@s3_gateway.util.handler.handle_unexpected_exception
-@s3_gateway.util.handler.limit_usage
-@s3_gateway.util.handler.handle_requests_exception
-@s3_gateway.util.handler.load_access_token
-@s3_gateway.util.handler.load_s3_config
-@s3_gateway.util.handler.handle_s3_exception
+@s3_gateway2.util.handler.handle_unexpected_exception
+@s3_gateway2.util.handler.limit_usage
+@s3_gateway2.util.handler.handle_requests_exception
+@s3_gateway2.util.handler.load_access_token
+@s3_gateway2.util.handler.load_s3_config
+@s3_gateway2.util.handler.handle_s3_exception
 def _get_gateway_metadata(environ, params):
     assert params.get('gateway.metadata.id')
 
@@ -125,7 +125,7 @@ def _get_gateway_metadata(environ, params):
     # List folder content metadata.
     prefix = base64.urlsafe_b64decode(params['gateway.metadata.id']).decode('utf-8')
     assert prefix[-1] == '/'
-    content_list, continuation_token = s3_gateway.controller.s3.list_content(
+    content_list, continuation_token = s3_gateway2.controller.s3.list_content(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],

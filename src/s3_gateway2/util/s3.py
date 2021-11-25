@@ -465,7 +465,7 @@ class S3Exception(Exception):
 def log_http_request(send_func):
     def wrapper(*args, **kwargs):
 
-        if _config.get('log.enable') is False:
+        if _config.get('s3_gateway2.util.s3.log.enable') is False:
             # skip logging
             return send_func(*args, **kwargs)
 
@@ -478,7 +478,7 @@ def log_http_request(send_func):
 
             # Log request timeout
             end_time = time.time()
-            if _config['log.file.path']:
+            if _config['s3_gateway2.util.s3.log.file']:
                 logging.getLogger(__name__).info(
                     '{:.3f} [{}] {} {} {}'.format(
                         end_time - start_time,
@@ -494,7 +494,7 @@ def log_http_request(send_func):
 
             # Log connection error
             end_time = time.time()
-            if _config['log.file.path']:
+            if _config['s3_gateway2.util.s3.log.file']:
                 logging.getLogger(__name__).info(
                     '{:.3f} [{}] {} {} {}'.format(
                         end_time - start_time,
@@ -508,7 +508,7 @@ def log_http_request(send_func):
 
         # log http response
         end_time = time.time()
-        if _config['log.file.path']:
+        if _config['s3_gateway2.util.s3.log.file']:
             logging.getLogger(__name__).info(
                 '{:.3f} [{}] {} {} {}'.format(
                     end_time - start_time,
@@ -938,7 +938,7 @@ def _send_sig4_request(region, host, access_key, access_key_secret,
         headers=headers,
         data=data,
         stream=stream,
-        timeout=(_config['request.connection.timeout'], _config['requests.read.timeout'])
+        timeout=_config['s3_gateway2.util.s3.request.timeout']
     )
     return response
 
@@ -948,15 +948,17 @@ def _send_sig4_request(region, host, access_key, access_key_secret,
 #
 
 def update_config(config):
-    _config.update(config)
+    # Load relevant configurations.
+    for key in _config.keys():
+        _config[key] = config[key]
 
-    if config.get('log.enable'):
-        assert config.get('log.file.path')
-        assert os.path.exists(os.path.dirname(config['log.file.path']))
+    # Setup logging.
+    if config.get('s3_gateway2.util.s3.log.enable'):
+        assert _config.get('s3_gateway2.util.s3.log.file')
+        assert os.path.exists(os.path.dirname(_config['s3_gateway2.util.s3.log.file']))
 
-        # setup logging
         handler = logging.handlers.RotatingFileHandler(
-            _config['log.file.path'],
+            _config['s3_gateway2.util.s3.log.file'],
             maxBytes=1024 * 1024 * 1024,  # 1 gb
             backupCount=2
         )
@@ -970,10 +972,9 @@ def update_config(config):
 
 
 _config = {
-    'log.file.path': 's3.log',
-    'log.enable': False,
-    'request.connection.timeout': 10,
-    'requests.read.timeout': 30
+    's3_gateway2.util.s3.log.file': 's3.log',
+    's3_gateway2.util.s3.log.enable': False,
+    's3_gateway2.util.s3.request.timeout': 10,
 }
 
 

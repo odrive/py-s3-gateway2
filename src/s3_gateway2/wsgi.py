@@ -75,7 +75,7 @@ def _get_resource_module(version, resource):
     # load from future if specified
     if version == 'future':
         try:
-            handler_module = importlib.import_module('s3_gateway.handler.future.' + resource)
+            handler_module = importlib.import_module('s3_gateway2.handler.future.' + resource)
         except ImportError:
             # downgrade version to next lookup
             version = 'downgrade'
@@ -83,7 +83,7 @@ def _get_resource_module(version, resource):
     # load from v2 if specified or downgrading
     if version in ['v2', 'downgrade']:
         try:
-            handler_module = importlib.import_module('s3_gateway.handler.v2.' + resource)
+            handler_module = importlib.import_module('s3_gateway2.handler.v2.' + resource)
         except ImportError:
             pass
 
@@ -142,24 +142,27 @@ def _send_response(start_response, status_code, status_message, content_type=Non
 #
 
 def update_config(config):
-    _config.update(config)
-
-    if _config.get('log.enable'):
+    # Load relevant configurations.
+    for key in _config.keys():
+        _config[key] = config[key]
+    
+    # Setup logging.
+    if _config.get('s3_gateway2.wsgi.log.enable'):
         global _logger
-        assert _config.get('log.path')
-        _logger = logging.getLogger(_config['log.path'])
+        assert _config.get('s3_gateway2.wsgi.log.file')
+        _logger = logging.getLogger(_config['s3_gateway2.wsgi.log.file'])
         _logger.setLevel(logging.INFO)
         _logger.addHandler(
             logging.handlers.RotatingFileHandler(
-                _config['log.path'],
-                maxBytes=1024 * 1024 * 1024,  # 1 gb
-                backupCount=2)
+                _config['s3_gateway2.wsgi.log.file'],
+                maxBytes=1024 * 1024,  # 1 mb
+                backupCount=5)
         )
 
 
 _config = {
-    'log.enable': True,
-    'log.path': 's3_gateway.log'
+    's3_gateway2.wsgi.log.enable': True,
+    's3_gateway2.wsgi.log.file': 's3_gateway2.log'
 }
 
-_logger = None
+_logger = logging.getLogger()

@@ -1,8 +1,8 @@
 import xmltodict
 from datetime import datetime
 import requests_toolbelt
-import s3_gateway.util.s3
-import s3_gateway.util.metadata_id
+import s3_gateway2.util.s3
+import s3_gateway2.util.metadata_id
 
 
 def create_file(region, host, access_key, access_key_secret, bucket,
@@ -29,7 +29,7 @@ def create_file(region, host, access_key, access_key_secret, bucket,
         size = int(response_header['Content-Length'])
     # Return s3_obj as metadata.
     return {
-        'gateway.metadata.id': s3_gateway.util.metadata_id.metadata_id(object_key),
+        'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(object_key),
         'gateway.metadata.type': 'file',
         'gateway.metadata.name': file_name,
         'gateway.metadata.modified': modified,
@@ -53,7 +53,7 @@ def create_folder(region, host, access_key, access_key_secret, bucket, key_prefi
         object_key = f"{key_prefix}{folder_name}/"
     else:
         object_key = f"{folder_name}/"
-    result = s3_gateway.util.s3.create(
+    result = s3_gateway2.util.s3.create(
         region=region,
         host=host,
         access_key=access_key,
@@ -69,7 +69,7 @@ def create_folder(region, host, access_key, access_key_secret, bucket, key_prefi
 
     # Success.
     return {
-        'gateway.metadata.id': s3_gateway.util.metadata_id.metadata_id(object_key),
+        'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(object_key),
         'gateway.metadata.type': 'folder',
         'gateway.metadata.name': folder_name,
         'gateway.metadata.modified': None,
@@ -94,7 +94,7 @@ def delete_file(region, host, access_key, access_key_secret, bucket, object_key)
     #
 
     # Delete file.
-    result = s3_gateway.util.s3.delete(
+    result = s3_gateway2.util.s3.delete(
         region=region,
         host=host,
         access_key=access_key,
@@ -134,7 +134,7 @@ def delete_folder(region, host, access_key, access_key_secret, bucket, object_pr
         child_keys = []
 
         # list all objects with prefix, no delimiter to get all descendants
-        descendants_xml = s3_gateway.util.s3.list_objects(
+        descendants_xml = s3_gateway2.util.s3.list_objects(
             region=region,
             host=host,
             access_key=access_key,
@@ -158,7 +158,7 @@ def delete_folder(region, host, access_key, access_key_secret, bucket, object_pr
 
         # bulk delete
         if child_keys:
-            response = s3_gateway.util.s3.delete_multi(
+            response = s3_gateway2.util.s3.delete_multi(
                 region=region,
                 host=host,
                 access_key=access_key,
@@ -188,7 +188,7 @@ def get_file_metadata(region, host, access_key, access_key_secret, bucket, objec
     assert bucket
     assert object_key
 
-    result = s3_gateway.util.s3.get_object(
+    result = s3_gateway2.util.s3.get_object(
         region=region,
         host=host,
         access_key=access_key,
@@ -203,9 +203,9 @@ def get_file_metadata(region, host, access_key, access_key_secret, bucket, objec
          - datetime(1970, 1, 1)).total_seconds() * 1000
     )
     return {
-        'gateway.metadata.id': s3_gateway.util.metadata_id.metadata_id(object_key),
+        'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(object_key),
         'gateway.metadata.type': 'file',
-        'gateway.metadata.name': s3_gateway.util.metadata_id.object_name(object_key),
+        'gateway.metadata.name': s3_gateway2.util.metadata_id.object_name(object_key),
         'gateway.metadata.modified': last_modified,
         'gateway.metadata.parent.id': None,
 
@@ -223,7 +223,7 @@ def iter_file(region, host, access_key, access_key_secret, bucket, object_key):
     assert object_key
 
     # stream data
-    return s3_gateway.util.s3.get_data_iterator(
+    return s3_gateway2.util.s3.get_data_iterator(
         region=region,
         host=host,
         access_key=access_key,
@@ -242,7 +242,7 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
     # assert prefix
 
     # list metadata for objects with delimiter and source ID as prefix
-    result = s3_gateway.util.s3.list_objects(
+    result = s3_gateway2.util.s3.list_objects(
         region=region,
         host=host,
         access_key=access_key,
@@ -303,7 +303,7 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
 
         # assemble file content resource
         content_listing.append({
-            'gateway.metadata.id': s3_gateway.util.metadata_id.metadata_id(file_obj['Key']),
+            'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(file_obj['Key']),
             'gateway.metadata.type': 'file',
             'gateway.metadata.name': name,
             'gateway.metadata.modified': modified,
@@ -321,7 +321,7 @@ def list_content(region, host, access_key, access_key_secret, bucket, prefix, co
 
         name = prefix['Prefix'].rstrip('/').split('/')[-1]  # extract name from prefix
         content_listing.append({
-            'gateway.metadata.id': s3_gateway.util.metadata_id.metadata_id(prefix['Prefix']),
+            'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(prefix['Prefix']),
             'gateway.metadata.type': 'folder',
             'gateway.metadata.name': name,
             'gateway.metadata.modified': None,
@@ -375,11 +375,11 @@ def move(region, host, access_key, access_key_secret, bucket, object_key, new_pr
     # Copy file to target folder.
     if new_prefix:
         # Move to folder.
-        new_object_key = new_prefix + s3_gateway.util.metadata_id.object_name(object_key)
+        new_object_key = new_prefix + s3_gateway2.util.metadata_id.object_name(object_key)
     else:
         # Move to root.
-        new_object_key = s3_gateway.util.metadata_id.object_name(object_key)
-    copy_object_response = s3_gateway.util.s3.copy_object(
+        new_object_key = s3_gateway2.util.metadata_id.object_name(object_key)
+    copy_object_response = s3_gateway2.util.s3.copy_object(
         region=region,
         host=host,
         access_key=access_key,
@@ -394,7 +394,7 @@ def move(region, host, access_key, access_key_secret, bucket, object_key, new_pr
         return None
 
     # Delete original file.
-    s3_gateway.util.s3.delete(
+    s3_gateway2.util.s3.delete(
         region=region,
         host=host,
         access_key=access_key,
@@ -409,9 +409,9 @@ def move(region, host, access_key, access_key_secret, bucket, object_key, new_pr
          - datetime(1970, 1, 1)).total_seconds() * 1000
     )
     return {
-        'gateway.metadata.id': s3_gateway.util.metadata_id.metadata_id(new_object_key),
+        'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(new_object_key),
         'gateway.metadata.type': 'file',
-        'gateway.metadata.name': s3_gateway.util.metadata_id.object_name(new_object_key),
+        'gateway.metadata.name': s3_gateway2.util.metadata_id.object_name(new_object_key),
         'gateway.metadata.modified': modified,
         'gateway.metadata.parent.id': None,
 
@@ -429,7 +429,7 @@ def rename(region, host, access_key, access_key_secret, bucket, object_key, new_
     assert object_key
     assert new_name
 
-    source_object = s3_gateway.util.s3.get_object(
+    source_object = s3_gateway2.util.s3.get_object(
         region=region,
         host=host,
         access_key=access_key,
@@ -454,9 +454,9 @@ def rename(region, host, access_key, access_key_secret, bucket, object_key, new_
     #
 
     # Copy file to new name.
-    new_object_key = object_key.rstrip(s3_gateway.util.metadata_id.object_name(object_key))
+    new_object_key = object_key.rstrip(s3_gateway2.util.metadata_id.object_name(object_key))
     new_object_key = new_object_key + new_name
-    copy_object_response = s3_gateway.util.s3.copy_object(
+    copy_object_response = s3_gateway2.util.s3.copy_object(
         region=region,
         host=host,
         access_key=access_key,
@@ -471,7 +471,7 @@ def rename(region, host, access_key, access_key_secret, bucket, object_key, new_
         return None
 
     # Delete original file
-    assert s3_gateway.util.s3.delete(
+    assert s3_gateway2.util.s3.delete(
         region=region,
         host=host,
         access_key=access_key,
@@ -486,7 +486,7 @@ def rename(region, host, access_key, access_key_secret, bucket, object_key, new_
          - datetime(1970, 1, 1)).total_seconds() * 1000
     )
     return {
-        'gateway.metadata.id': s3_gateway.util.metadata_id.metadata_id(new_object_key),
+        'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(new_object_key),
         'gateway.metadata.type': 'file',
         'gateway.metadata.name': new_name,
         'gateway.metadata.modified': modified,
@@ -523,9 +523,9 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
 
     # Success.
     return {
-        'gateway.metadata.id': s3_gateway.util.metadata_id.metadata_id(object_key),
+        'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(object_key),
         'gateway.metadata.type': 'file',
-        'gateway.metadata.name': s3_gateway.util.metadata_id.object_name(object_key),
+        'gateway.metadata.name': s3_gateway2.util.metadata_id.object_name(object_key),
         'gateway.metadata.modified': modified,
         'gateway.metadata.parent.id': None,
 
@@ -545,7 +545,7 @@ def _upload_file(region, host, access_key, access_key_secret, bucket, object_key
 
     # upload file smaller than 2GB
     if size < 1024 * 1024 * 1024 * 2:
-        return s3_gateway.util.s3.create(
+        return s3_gateway2.util.s3.create(
             region=region,
             host=host,
             access_key=access_key,
@@ -560,7 +560,7 @@ def _upload_file(region, host, access_key, access_key_secret, bucket, object_key
     # upload file bigger than 2GB with multipart upload
 
     # initialize multipart upload ID
-    response = s3_gateway.util.s3.create_multipart_upload(
+    response = s3_gateway2.util.s3.create_multipart_upload(
         region=region,
         host=host,
         access_key=access_key,
@@ -592,7 +592,7 @@ def _upload_file(region, host, access_key, access_key_secret, bucket, object_key
         input_stream = requests_toolbelt.StreamingIterator(part_size, part)
 
         # upload part to multipart upload session
-        part_result = s3_gateway.util.s3.upload_part(
+        part_result = s3_gateway2.util.s3.upload_part(
             region=region,
             host=host,
             access_key=access_key,
@@ -609,7 +609,7 @@ def _upload_file(region, host, access_key, access_key_secret, bucket, object_key
         current_part_number += 1
 
     # complete the multipart upload and get the result
-    response = s3_gateway.util.s3.complete_multipart_upload(
+    response = s3_gateway2.util.s3.complete_multipart_upload(
         region=region,
         host=host,
         access_key=access_key,

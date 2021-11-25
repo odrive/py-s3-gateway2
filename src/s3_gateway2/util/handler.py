@@ -4,8 +4,8 @@ import urllib.parse
 import requests
 import traceback
 import xmltodict
-import s3_gateway.util.s3
-import s3_gateway.controller.datastore
+import s3_gateway2.util.s3
+import s3_gateway2.controller.datastore
 
 
 def handle_requests_exception(dispatch_func):
@@ -59,7 +59,7 @@ def load_access_token(dispatch_func):
 def load_s3_config(dispatch_func):
     def wrapper(environ, params):
         assert params['access.token']
-        config = s3_gateway.controller.datastore.get(params['access.token'], 'registration')
+        config = s3_gateway2.controller.datastore.get(params['access.token'], 'registration')
 
         # Validate
         if config is None:
@@ -87,7 +87,7 @@ def handle_s3_exception(dispatch_func):
         try:
             return dispatch_func(*args, **kwargs)
 
-        except s3_gateway.util.s3.S3Exception as e:
+        except s3_gateway2.util.s3.S3Exception as e:
 
             if e.http_response.status_code == 400:
                 # Parse message.
@@ -129,14 +129,14 @@ def limit_usage(dispatch_func):
         global _usage_start
 
         # reset usage after usage interval
-        if time.time() > _usage_start + _config['usage.interval.seconds']:
+        if time.time() > _usage_start + _config['s3_gateway2.util.handler.usage.interval.seconds']:
             _usage_start = time.time()
             _usage_count = 0
 
         _usage_count += 1
 
         # check if exceed max requests within usage interval
-        if _usage_count > _config['usage.count.max']:
+        if _usage_count > _config['s3_gateway2.util.handler.usage.count.max']:
             return {'code': '429', 'message': 'Exceeded usage limit'}
 
         # execute wrapped function
@@ -208,15 +208,16 @@ def _get_cookie(name, environ):
 # config
 #
 
+
 def update_config(config):
-    assert config.get('usage.interval.seconds')
-    assert config.get('usage.count.max')
-    _config.update(config)
+    # Load relevant configurations.
+    for key in _config.keys():
+        _config[key] = config[key]
 
 
 _config = {
-    'usage.interval.seconds': 10,  # number of seconds
-    'usage.count.max': 1000,  # max requests within usage interval
+    's3_gateway2.util.handler.usage.interval.seconds': 10,  # number of seconds
+    's3_gateway2.util.handler.usage.count.max': 1000,  # max requests within usage interval
 }
 
 _usage_start = time.time()

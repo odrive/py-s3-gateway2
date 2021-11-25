@@ -1,9 +1,9 @@
 import json
 import random
 import string
-import s3_gateway.util.s3
-import s3_gateway.util.handler
-import s3_gateway.controller.datastore
+import s3_gateway2.util.s3
+import s3_gateway2.util.handler
+import s3_gateway2.controller.datastore
 
 
 def handle(environ):
@@ -42,10 +42,10 @@ def handle(environ):
 
 # Sign in.
 # POST /v2/gateway_auth
-@s3_gateway.util.handler.handle_unexpected_exception
-@s3_gateway.util.handler.limit_usage
-@s3_gateway.util.handler.handle_requests_exception
-@s3_gateway.util.handler.handle_s3_exception
+@s3_gateway2.util.handler.handle_unexpected_exception
+@s3_gateway2.util.handler.limit_usage
+@s3_gateway2.util.handler.handle_requests_exception
+@s3_gateway2.util.handler.handle_s3_exception
 def _post(environ, params):
 
     #
@@ -100,7 +100,7 @@ def _post(environ, params):
     #
 
     # Check credentials.
-    if not s3_gateway.util.s3.check_bucket_exists(
+    if not s3_gateway2.util.s3.check_bucket_exists(
         region=params['region'],
         host=params['host'],
         access_key=params['key'],
@@ -126,7 +126,7 @@ def _post(environ, params):
         'config.access.key.secret': params['secret'],
         'config.root.metadata.id': '',
     }
-    assert s3_gateway.controller.datastore.put(access_token, config, 'registration')
+    assert s3_gateway2.controller.datastore.put(access_token, config, 'registration')
     response = {
         'gateway.auth.access.token': access_token,
         'gateway.auth.refresh.token': None,
@@ -142,9 +142,9 @@ def _post(environ, params):
 
 # Sign out.
 # DELETE /v2/gateway_auth/<gateway.auth.access.token>
-@s3_gateway.util.handler.handle_unexpected_exception
-@s3_gateway.util.handler.limit_usage
-@s3_gateway.util.handler.handle_requests_exception
+@s3_gateway2.util.handler.handle_unexpected_exception
+@s3_gateway2.util.handler.limit_usage
+@s3_gateway2.util.handler.handle_requests_exception
 def _delete_gateway_auth(environ, params):
     assert params.get('gateway.auth.access.token')
 
@@ -158,7 +158,7 @@ def _delete_gateway_auth(environ, params):
     })
 
     # load datastore
-    params['registration'] = s3_gateway.controller.datastore.get(params['gateway.auth.access.token'], 'registration')
+    params['registration'] = s3_gateway2.controller.datastore.get(params['gateway.auth.access.token'], 'registration')
 
     #
     # validate
@@ -176,7 +176,7 @@ def _delete_gateway_auth(environ, params):
     #
 
     # delete registration
-    s3_gateway.controller.datastore.delete(params['gateway.auth.access.token'], 'registration')
+    s3_gateway2.controller.datastore.delete(params['gateway.auth.access.token'], 'registration')
     return {
         'code': '200',
         'message': 'OK'

@@ -7,12 +7,12 @@ import random
 
 def put(key, obj, obj_type):
 
-    file_path = os.path.join(_config['path'], obj_type, key)
+    file_path = os.path.join(_config['s3_gateway2.controller.datastore.dir'], obj_type, key)
     temp_path = file_path + '~' + str(random.randint(1, 1000000))
 
     # ensure type folder exists
     try:
-        os.makedirs(os.path.join(_config['path'], obj_type))
+        os.makedirs(os.path.join(_config['s3_gateway2.controller.datastore.dir'], obj_type))
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
@@ -45,7 +45,7 @@ def put(key, obj, obj_type):
 
 def get(key, obj_type, ttl_seconds=0):
 
-    file_path = os.path.join(_config['path'], obj_type, key)
+    file_path = os.path.join(_config['s3_gateway2.controller.datastore.dir'], obj_type, key)
 
     if not os.path.exists(file_path):
         # handle no key for type
@@ -80,7 +80,7 @@ def get(key, obj_type, ttl_seconds=0):
 
 def delete(key, obj_type):
 
-    path = os.path.join(_config['path'], obj_type, key)
+    path = os.path.join(_config['s3_gateway2.controller.datastore.dir'], obj_type, key)
 
     try:
         os.remove(path)
@@ -103,9 +103,11 @@ class DatastoreException(Exception):
 #
 
 _config = {
-    'path': 'data'
+    's3_gateway2.controller.datastore.dir': 'datastore'
 }
 
 
-def update_config(properties):
-    _config.update(properties)
+def update_config(config):
+    # Load relevant configurations.
+    for key in _config.keys():
+        _config[key] = config[key]

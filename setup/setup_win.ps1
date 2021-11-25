@@ -8,7 +8,7 @@ python -m venv env
 python -m pip install --upgrade pip
 
 # install dependencies to virtual environment
-python -m pip install --upgrade -r dependencies.pip
+python -m pip install --force-reinstall -r dependencies.pip
 
 # set up python path
 $STARTDIR=$((Get-Item -Path ".\" -Verbose).FullName)
