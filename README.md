@@ -27,51 +27,26 @@ setup/setup_mac.sh
 ```
 # /bin/config.json
 {
-  "controller.datastore.path": "datastore",
-  "util.handler.usage.interval.seconds": 1,
-  "util.handler.usage.count.max": 60,
-  "util.s3.log.enable": true,
-  "util.s3.log.file.path": "s3.log"
-  "wsgi.log.enable": true,
-  "wsgi.log.path": "server.log",
+  "s3_gateway2.deployment.server.port": 10080,
+  "s3_gateway2.deployment.server.thread.pool": 50,
+  "s3_gateway2.deployment.data.dir": "data"
 }
 ```
 
-The default configuration enables logging and uses the current working directory for logs and session files. 
+The default configuration uses the current working directory for the data directory containing logs and session files. 
 
 If you want to change the runtime settings, update the properties in `config.json` and restart.
 
 Property | Description
 ---|---
-`controller.datastore.path` | Where to store session files.
-`util.handler.usage.interval.seconds` | Sampling period for limiting usage.
-`util.handler.usage.count.max` | Maximum requests within usage interface. Requests beyond the max return 429 status code.
-`util.s3.log.enable` | Set `true` to log every s3 request.
-`util.s3.log.file.path` | Relative or absolute path to s3 log file.
-`wsgi.log.enable` | Set `true` to log every server request.
-`wsgi.log.path` | Relative or absolute path to server log. 
-
-# Configure cherrypy
-
-S3 Gateway is a WSGI application running in cherrypy. `/bin/run.py` defines the cherrypy configuration.
-
-```
-# configure cherrypy
-cherrypy.config.update({
-    'server.socket_port': 9083,
-    'server.socket_host': '127.0.0.1',
-    'server.thread_pool': 30,
-    # remove any limit on request body size; default is 100MB; Use 2147483647 for 2GB
-    'server.max_request_body_size': 0,
-})
-```
-
-Modify `/bin/run.py` to change the cherrypy configuration. For example, update the `server.socket_port` property to change the server port number.
+`s3_gateway2.deployment.server.port` | Gateway server port.
+`s3_gateway2.deployment.server.thread.pool` | Available request worker threads.
+`s3_gateway2.deployment.data.dir` | Gateway log and session directory.
 
 
 # Launch
 
-Start the web server from the project bin directory.
+Start the gateway from the project bin directory.
 
 *Windows*
 ```
@@ -108,7 +83,7 @@ gws>
 
 Access S3 Gateway directly on your computer with Gateway Sync.
 
-*Download link and screen shots coming soon*
+*Download link and screen shots coming soon. Please contact odrive to recieve early access.*
 
 ## Gateway API
 
