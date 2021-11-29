@@ -27,7 +27,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_gateway_metadata' if params['gateway.metadata.id'] else ''
+        '_gateway_metadata_children' if params['gateway.metadata.id'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -99,7 +99,7 @@ def _get(environ, params):
 @s3_gateway2.util.handler.load_access_token
 @s3_gateway2.util.handler.load_s3_config
 @s3_gateway2.util.handler.handle_s3_exception
-def _get_gateway_metadata(environ, params):
+def _get_gateway_metadata_children(environ, params):
     assert params.get('gateway.metadata.id')
 
     #
