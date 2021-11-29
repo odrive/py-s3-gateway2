@@ -23,7 +23,7 @@ def handle(environ):
 
     delegate_func = '_{}{}'.format(
         environ['REQUEST_METHOD'].lower(),
-        '_gateway_metadata' if params['gateway.metadata.id'] else ''
+        '_gateway_file_thumbnail' if params['gateway.metadata.id'] else ''
     )
     if delegate_func in globals():
         return eval(delegate_func)(environ, params)
@@ -35,10 +35,9 @@ def handle(environ):
     }
 
 
-# Download icon.
 # GET /v2/gateway_file_thumbnail/<gateway.metadata.id>
 @s3_gateway2.util.handler.limit_usage
-def _get_gateway_metadata(environ, params):
+def _get_gateway_file_thumbnail(environ, params):
     return {
         'code': '403',
         'message': 'Not available'
