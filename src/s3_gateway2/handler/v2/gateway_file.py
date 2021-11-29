@@ -33,7 +33,7 @@ def handle(environ):
 
     # Unknown.
     return {
-        'code': '404',
+        'code': '400',
         'message': 'Not found.'
     }
 
@@ -74,10 +74,10 @@ def _get_gateway_file(environ, params):
         object_key=object_key
     )
     if file_iterator is None:
-        # Not found.
+        # Not allowed.
         return {
-            'code': '404',
-            'message': 'Not found.'
+            'code': '403',
+            'message': 'Not allowed.'
         }
     return {
         'code': '200',
