@@ -197,6 +197,10 @@ def get_file_metadata(region, host, access_key, access_key_secret, bucket, objec
         object_key=object_key
     )
 
+    if result is None:
+        # Not found or not allowed.
+        return None
+
     # Generate metadata.
     last_modified = int(
         (datetime.strptime(result.get('Last-Modified'), '%Y-%m-%dT%H:%M:%S.%fZ')
