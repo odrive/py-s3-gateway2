@@ -25,7 +25,7 @@ def create_file(region, host, access_key, access_key_secret, bucket,
     if response_header is None:
         # Not allowed.
         return None
-    if response_header.get('Content-Length'):
+    if response_header.get('Content-Length') is not None:
         size = int(response_header['Content-Length'])
     # Return s3_obj as metadata.
     return {
@@ -534,7 +534,8 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
         'gateway.metadata.parent.id': None,
 
         'gateway.metadata.file.hash': response_header['ETag'],
-        'gateway.metadata.file.size': int(response_header['Content-Length']),
+        'gateway.metadata.file.size':
+            int(response_header['Content-Length']) if response_header.get('Content-Length') is not None else None,
     }
 
 
