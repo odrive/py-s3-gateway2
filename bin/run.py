@@ -41,7 +41,7 @@ def main():
     s3_gateway2_config = {
         # Enable server request throttling.
         's3_gateway2.util.handler.usage.interval.seconds': 10,
-        's3_gateway2.util.handler.usage.count.max': 100,
+        's3_gateway2.util.handler.usage.count.max': 25,
 
         # Enable server request logging.
         's3_gateway2.wsgi.log.enable': True,

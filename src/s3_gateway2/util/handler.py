@@ -217,7 +217,7 @@ def update_config(config):
 
 _config = {
     's3_gateway2.util.handler.usage.interval.seconds': 10,  # number of seconds
-    's3_gateway2.util.handler.usage.count.max': 1000,  # max requests within usage interval
+    's3_gateway2.util.handler.usage.count.max': 25,  # max requests within usage interval
 }
 
 _usage_start = time.time()
