@@ -130,7 +130,8 @@ def _post(environ, params):
     response = {
         'gateway.auth.access.token': access_token,
         'gateway.auth.refresh.token': None,
-        'gateway.auth.metadata.id': config['config.root.metadata.id']
+        'gateway.auth.metadata.id': config['config.root.metadata.id'],
+        'gateway.auth.id': None,
     }
     return {
         'code': '200',
