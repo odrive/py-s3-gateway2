@@ -42,7 +42,7 @@ def handle(environ):
 # Upload file to root.
 # POST /v2/gateway_metadata_file
 def _post(environ, params):
-    return _post_gateway_metadata(environ, params)
+    return _post_gateway_metadata_file(environ, params)
 
 
 # Upload file to folder.
