@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 import s3_gateway2.util.handler
 import s3_gateway2.util.metadata_id
 import s3_gateway2.controller.s3
@@ -69,11 +70,7 @@ def _post_gateway_metadata_file(environ, params):
         header_params = json.loads(environ['HTTP_X_GATEWAY_UPLOAD'])
         if header_params:
             if header_params.get('gateway.metadata.name'):
-                params['gateway.metadata.name'] = header_params['gateway.metadata.name'].encode(
-                    'ISO-8859-1'
-                ).decode(
-                    'unicode-escape'
-                )
+                params['gateway.metadata.name'] = urllib.parse.unquote(header_params['gateway.metadata.name'])
             params['gateway.metadata.file.size'] = header_params.get('gateway.metadata.file.size')
             params['gateway.metadata.modified'] = header_params.get('gateway.metadata.modified')
 
