@@ -1,3 +1,4 @@
+import base64
 import xmltodict
 from datetime import datetime
 import requests_toolbelt
@@ -539,6 +540,230 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
     }
 
 
+def create_new_file_upload(region, host, access_key, access_key_secret, bucket, key_prefix, file_name, segments):
+    assert region
+    assert host
+    assert access_key
+    assert access_key_secret
+    assert bucket
+    assert file_name
+    assert segments
+
+    # Calculate new S3 object key.
+    if key_prefix:
+        object_key = f"{key_prefix}{file_name}"
+    else:
+        object_key = file_name
+
+    # Initialize multipart upload.
+    response = s3_gateway2.util.s3.create_multipart_upload(
+        region=region,
+        host=host,
+        access_key=access_key,
+        access_key_secret=access_key_secret,
+        bucket=bucket,
+        object_key=object_key
+    )
+    if response is None:
+        # Not allowed.
+        return None
+
+    response = xmltodict.parse(response)
+
+    # Insert empty cookies into segment table to satisfy gateway API.
+    for segment in segments:
+        segment.update({
+            'gateway.upload.segment.cookie': {},
+        })
+
+    # Return gateway upload
+    return {
+        'gateway.upload.id': _gateway_upload_id(
+            s3_object_key=object_key,
+            s3_upload_id=response['InitiateMultipartUploadResult'].get('UploadId')
+        ),
+        'gateway.upload.segment': segments,
+        'gateway.upload.cookie': {
+            'upload.key': None
+        },
+    }
+
+
+def create_update_file_upload(region, host, access_key, access_key_secret, bucket, object_key, segments):
+    assert region
+    assert host
+    assert access_key
+    assert access_key_secret
+    assert bucket
+    assert object_key
+    assert segments
+
+    # Check file.
+    if object_key[-1] == '/':
+        # Not a file.
+        return None
+
+    # Initialize multipart upload.
+    response = s3_gateway2.util.s3.create_multipart_upload(
+        region=region,
+        host=host,
+        access_key=access_key,
+        access_key_secret=access_key_secret,
+        bucket=bucket,
+        object_key=object_key
+    )
+    if response is None:
+        # Not allowed.
+        return None
+
+    response = xmltodict.parse(response)
+
+    # Insert empty cookies into segment table to satisfy gateway API.
+    for segment in segments:
+        segment.update({
+            'gateway.upload.segment.cookie': {},
+        })
+
+    # Return gateway upload
+    return {
+        'gateway.upload.id': _gateway_upload_id(
+            s3_object_key=object_key,
+            s3_upload_id=response['InitiateMultipartUploadResult'].get('UploadId')
+        ),
+        'gateway.upload.segment': segments,
+        'gateway.upload.cookie': {},
+    }
+
+
+def upload_segment(region, host, access_key, access_key_secret, bucket, segment_number, segment_size,
+                   segment_sha256, gateway_upload_id, input_stream):
+    assert region
+    assert host
+    assert access_key
+    assert access_key_secret
+    assert bucket
+    assert segment_number
+    assert segment_size
+    assert segment_sha256
+    assert gateway_upload_id
+    assert input_stream
+
+    # Decode gateway upload id
+    redirect_upload = _redirect_upload(gateway_upload_id)
+    assert redirect_upload
+
+    # make a generator for reading the next part
+    part = _generate_part(input_stream, segment_size)
+
+    # make an iterator for streaming the next part
+    # (NOTE: StreamingIterator does not stop at size, it reads to end of generator.)
+    input_stream = requests_toolbelt.StreamingIterator(segment_size, part)
+
+    # upload part to multipart upload session
+    part_result = s3_gateway2.util.s3.upload_part(
+        region=region,
+        host=host,
+        access_key=access_key,
+        access_key_secret=access_key_secret,
+        bucket=bucket,
+        object_key=redirect_upload['object.key'],
+        content_length=segment_size,
+        file_like_object=input_stream,
+        part_number=segment_number,
+        upload_id=redirect_upload['upload.id']
+    )
+    if part_result is None:
+        # Not allowed
+        return None
+
+    # Return updated segment
+    return {
+        'gateway.upload.id': gateway_upload_id,
+        'gateway.upload.segment.number': segment_number,
+        'gateway.upload.segment.sha256': segment_sha256,
+        'gateway.upload.segment.size': segment_size,
+        'gateway.upload.segment.cookie': {
+            'etag': part_result['Etag'],
+        },
+        'gateway.upload.cookie': {}
+    }
+
+
+def complete_upload(region, host, access_key, access_key_secret, bucket, gateway_upload_id, segments, size):
+    assert region
+    assert host
+    assert access_key
+    assert access_key_secret
+    assert bucket
+    assert gateway_upload_id
+    assert segments
+    assert size is not None
+
+    # Decode gateway upload id
+    redirect_upload = _redirect_upload(gateway_upload_id)
+    assert redirect_upload
+
+    # Complete the multipart upload and get the result.
+    response = s3_gateway2.util.s3.complete_multipart_upload(
+        region=region,
+        host=host,
+        access_key=access_key,
+        access_key_secret=access_key_secret,
+        bucket=bucket,
+        object_key=redirect_upload['object.key'],
+        upload_id=redirect_upload['upload.id'],
+        uploaded_parts=[segment['gateway.upload.segment.cookie']['etag']
+            for segment in segments
+        ]
+    )
+    if response:
+        response = xmltodict.parse(response).get("CompleteMultipartUploadResult")
+
+    if response is None:
+        # Not allowed.
+        return None
+
+    # Success.
+    return {
+        'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(redirect_upload['object.key']),
+        'gateway.metadata.type': 'file',
+        'gateway.metadata.name': s3_gateway2.util.metadata_id.object_name(redirect_upload['object.key']),
+        'gateway.metadata.modified': None,  # TODO
+        'gateway.metadata.parent.id': None,
+        'gateway.metadata.file.hash': response['ETag'],
+        'gateway.metadata.file.size': size,
+    }
+
+
+def delete_upload(region, host, access_key, access_key_secret, bucket, gateway_upload_id):
+    assert region
+    assert host
+    assert access_key
+    assert access_key_secret
+    assert bucket
+    assert gateway_upload_id
+
+    # Decode gateway upload id
+    redirect_upload = _redirect_upload(gateway_upload_id)
+    assert redirect_upload
+
+    # Complete the multipart upload and get the result.
+    response = s3_gateway2.util.s3.abort_multipart_upload(
+        region=region,
+        host=host,
+        access_key=access_key,
+        access_key_secret=access_key_secret,
+        bucket=bucket,
+        object_key=redirect_upload['object.key'],
+        upload_id=redirect_upload['upload.id'],
+    )
+    if response is None:
+        # Not allowed.
+        return False
+
+    return True
+
+
 def _upload_file(region, host, access_key, access_key_secret, bucket, object_key, size, data):
     assert region
     assert host
@@ -638,3 +863,19 @@ def _generate_part(upload, limit):
             break
         uploaded_bytes += chunk_size
         yield out
+
+
+def _redirect_upload(gateway_upload_id):
+    # Get redirect info.
+    decoded_gateway_upload_id = base64.urlsafe_b64decode(gateway_upload_id).decode('utf-8')
+    parts = decoded_gateway_upload_id.split('::')
+    assert len(parts) == 2
+    return {
+        'object.key': parts[0],
+        'upload.id': parts[1],
+    }
+
+
+def _gateway_upload_id(s3_object_key, s3_upload_id):
+    string = f"{s3_object_key}::{s3_upload_id}"
+    return base64.urlsafe_b64encode(string.encode('utf-8')).decode('ascii')
