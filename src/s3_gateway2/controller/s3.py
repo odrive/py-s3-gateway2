@@ -39,6 +39,7 @@ def create_file(region, host, access_key, access_key_secret, bucket,
                 expected_sha256=sha256
             )
         ),
+        sha256=sha256
     )
 
     if response_header is None:
@@ -553,6 +554,7 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
                 expected_sha256=sha256
             )
         ),
+        sha256=sha256
     )
     if response_header is None:
         # Not allowed.
@@ -703,6 +705,7 @@ def upload_segment(region, host, access_key, access_key_secret, bucket, segment_
         ),
         part_number=segment_number,
         upload_id=redirect_upload['upload.id'],
+        sha256=segment_sha256
     )
     if part_result is None:
         # Not allowed
