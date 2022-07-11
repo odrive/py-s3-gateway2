@@ -22,7 +22,17 @@ def create_file(region, host, access_key, access_key_secret, bucket,
         object_key = file_name
 
     # Upload file.
-    response_header = _upload_file(region, host, access_key, access_key_secret, bucket, object_key, size, data)
+    response_header = s3_gateway2.util.s3.create(
+        region=region,
+        host=host,
+        access_key=access_key,
+        access_key_secret=access_key_secret,
+        bucket=bucket,
+        object_key=object_key,
+        content_length=size,
+        data=requests_toolbelt.StreamingIterator(size, data)
+    )
+
     if response_header is None:
         # Not allowed.
         return None
@@ -519,8 +529,15 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
         return None
 
     # Upload file.
-    response_header = _upload_file(
-        region, host, access_key, access_key_secret, bucket, object_key, size, data
+    response_header = s3_gateway2.util.s3.create(
+        region=region,
+        host=host,
+        access_key=access_key,
+        access_key_secret=access_key_secret,
+        bucket=bucket,
+        object_key=object_key,
+        content_length=size,
+        data=requests_toolbelt.StreamingIterator(size, data)
     )
     if response_header is None:
         # Not allowed.
@@ -762,94 +779,6 @@ def delete_upload(region, host, access_key, access_key_secret, bucket, gateway_u
         return False
 
     return True
-
-
-def _upload_file(region, host, access_key, access_key_secret, bucket, object_key, size, data):
-    assert region
-    assert host
-    assert access_key
-    assert access_key_secret
-    assert bucket
-    assert object_key
-    assert size >= 0
-
-    # upload file smaller than 2GB
-    if size < 1024 * 1024 * 1024 * 2:
-        return s3_gateway2.util.s3.create(
-            region=region,
-            host=host,
-            access_key=access_key,
-            access_key_secret=access_key_secret,
-            bucket=bucket,
-            object_key=object_key,
-            content_length=size,
-            data=requests_toolbelt.StreamingIterator(size, data)
-            # file_like_object=StreamingIterator(size, file_like_object)
-        )
-
-    # upload file bigger than 2GB with multipart upload
-
-    # initialize multipart upload ID
-    response = s3_gateway2.util.s3.create_multipart_upload(
-        region=region,
-        host=host,
-        access_key=access_key,
-        access_key_secret=access_key_secret,
-        bucket=bucket,
-        object_key=object_key
-    )
-    response = xmltodict.parse(response)
-    upload_id = response['InitiateMultipartUploadResult'].get('UploadId')
-
-    # read the request input and serially upload in parts
-    file_size = size
-    part_size = 1024 * 1024 * 1024 * 1  # 1GB chunk size
-    current_part_number = 1
-    total_bytes_sent = 0
-    uploaded_parts = []
-    while total_bytes_sent < file_size:
-
-        # calculate current stream position
-        bytes_left = file_size - total_bytes_sent
-        if bytes_left < part_size:
-            part_size = bytes_left
-
-        # make a generator for reading the next part
-        part = _generate_part(data, part_size)
-
-        # make an iterator for streaming the next part
-        # (NOTE: StreamingIterator does not stop at size, it reads to end of generator.)
-        input_stream = requests_toolbelt.StreamingIterator(part_size, part)
-
-        # upload part to multipart upload session
-        part_result = s3_gateway2.util.s3.upload_part(
-            region=region,
-            host=host,
-            access_key=access_key,
-            access_key_secret=access_key_secret,
-            bucket=bucket,
-            object_key=object_key,
-            content_length=part_size,
-            file_like_object=input_stream,
-            part_number=current_part_number,
-            upload_id=upload_id
-        )
-        uploaded_parts.append(part_result['Etag'])
-        total_bytes_sent += part_size
-        current_part_number += 1
-
-    # complete the multipart upload and get the result
-    response = s3_gateway2.util.s3.complete_multipart_upload(
-        region=region,
-        host=host,
-        access_key=access_key,
-        access_key_secret=access_key_secret,
-        bucket=bucket,
-        object_key=object_key,
-        upload_id=upload_id,
-        uploaded_parts=uploaded_parts
-    )
-    return xmltodict.parse(response).get("CompleteMultipartUploadResult")
 
 
 def _generate_part(upload, limit):
