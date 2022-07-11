@@ -33,7 +33,7 @@ def create_file(region, host, access_key, access_key_secret, bucket,
         'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(object_key),
         'gateway.metadata.type': 'file',
         'gateway.metadata.name': file_name,
-        'gateway.metadata.modified': modified,
+        'gateway.metadata.modified': None,  # starts out unset
         'gateway.metadata.parent.id': None,
 
         'gateway.metadata.file.size': size,
@@ -531,7 +531,7 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
         'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(object_key),
         'gateway.metadata.type': 'file',
         'gateway.metadata.name': s3_gateway2.util.metadata_id.object_name(object_key),
-        'gateway.metadata.modified': modified,
+        'gateway.metadata.modified': None,  # starts out unset
         'gateway.metadata.parent.id': None,
 
         'gateway.metadata.file.hash': response_header['ETag'],
@@ -728,7 +728,7 @@ def complete_upload(region, host, access_key, access_key_secret, bucket, gateway
         'gateway.metadata.id': s3_gateway2.util.metadata_id.metadata_id(redirect_upload['object.key']),
         'gateway.metadata.type': 'file',
         'gateway.metadata.name': s3_gateway2.util.metadata_id.object_name(redirect_upload['object.key']),
-        'gateway.metadata.modified': None,  # TODO
+        'gateway.metadata.modified': None,  # starts out unset
         'gateway.metadata.parent.id': None,
         'gateway.metadata.file.hash': response['ETag'],
         'gateway.metadata.file.size': size,
