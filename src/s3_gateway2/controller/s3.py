@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import xmltodict
 from datetime import datetime
 import requests_toolbelt
@@ -7,7 +8,7 @@ import s3_gateway2.util.metadata_id
 
 
 def create_file(region, host, access_key, access_key_secret, bucket,
-                key_prefix, file_name, size, modified, data):
+                key_prefix, file_name, size, modified, data, sha256=None):
     assert region
     assert host
     assert access_key
@@ -30,7 +31,14 @@ def create_file(region, host, access_key, access_key_secret, bucket,
         bucket=bucket,
         object_key=object_key,
         content_length=size,
-        data=requests_toolbelt.StreamingIterator(size, data)
+        data=requests_toolbelt.StreamingIterator(
+            size,
+            _file_stream_generator(
+                upload=data,
+                limit=size,
+                expected_sha256=sha256
+            )
+        ),
     )
 
     if response_header is None:
@@ -512,7 +520,7 @@ def rename(region, host, access_key, access_key_secret, bucket, object_key, new_
     }
 
 
-def update_file(region, host, access_key, access_key_secret, bucket, object_key, data, size, modified):
+def update_file(region, host, access_key, access_key_secret, bucket, object_key, data, size, modified, sha256=None):
     assert region
     assert host
     assert access_key
@@ -537,7 +545,14 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
         bucket=bucket,
         object_key=object_key,
         content_length=size,
-        data=requests_toolbelt.StreamingIterator(size, data)
+        data=requests_toolbelt.StreamingIterator(
+            size,
+            _file_stream_generator(
+                upload=data,
+                limit=size,
+                expected_sha256=sha256
+            )
+        ),
     )
     if response_header is None:
         # Not allowed.
@@ -669,13 +684,6 @@ def upload_segment(region, host, access_key, access_key_secret, bucket, segment_
     redirect_upload = _redirect_upload(gateway_upload_id)
     assert redirect_upload
 
-    # make a generator for reading the next part
-    part = _generate_part(input_stream, segment_size)
-
-    # make an iterator for streaming the next part
-    # (NOTE: StreamingIterator does not stop at size, it reads to end of generator.)
-    input_stream = requests_toolbelt.StreamingIterator(segment_size, part)
-
     # upload part to multipart upload session
     part_result = s3_gateway2.util.s3.upload_part(
         region=region,
@@ -685,9 +693,16 @@ def upload_segment(region, host, access_key, access_key_secret, bucket, segment_
         bucket=bucket,
         object_key=redirect_upload['object.key'],
         content_length=segment_size,
-        file_like_object=input_stream,
+        file_like_object=requests_toolbelt.StreamingIterator(
+            segment_size,
+            _file_stream_generator(
+                upload=input_stream,
+                limit=segment_size,
+                expected_sha256=segment_sha256
+            )
+        ),
         part_number=segment_number,
-        upload_id=redirect_upload['upload.id']
+        upload_id=redirect_upload['upload.id'],
     )
     if part_result is None:
         # Not allowed
@@ -781,9 +796,10 @@ def delete_upload(region, host, access_key, access_key_secret, bucket, gateway_u
     return True
 
 
-def _generate_part(upload, limit):
+def _file_stream_generator(upload, limit, expected_sha256=None):
     uploaded_bytes = 0
     chunk_size = 32768
+    sha256 = hashlib.sha256()
     while True:
         if limit <= uploaded_bytes:
             break
@@ -791,7 +807,13 @@ def _generate_part(upload, limit):
         if not out:
             break
         uploaded_bytes += chunk_size
+        if expected_sha256:
+            sha256.update(out)
         yield out
+
+    # Transfer completed. Validate against expected sha256.
+    if expected_sha256:
+        assert expected_sha256 == sha256.hexdigest()
 
 
 def _redirect_upload(gateway_upload_id):

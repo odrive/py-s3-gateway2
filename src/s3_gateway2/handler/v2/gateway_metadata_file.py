@@ -63,6 +63,7 @@ def _post_gateway_metadata_file(environ, params):
         'gateway.metadata.name': None,
         'gateway.metadata.modified': None,
         'gateway.metadata.file.size': None,
+        'gateway.metadata.file.sha256': None,
     })
 
     # Load headers.
@@ -73,6 +74,7 @@ def _post_gateway_metadata_file(environ, params):
                 params['gateway.metadata.name'] = urllib.parse.unquote(header_params['gateway.metadata.name'])
             params['gateway.metadata.file.size'] = header_params.get('gateway.metadata.file.size')
             params['gateway.metadata.modified'] = header_params.get('gateway.metadata.modified')
+            params['gateway.metadata.file.sha256'] = header_params.get('gateway.metadata.file.sha256')
 
     #
     # Validate request.
@@ -100,6 +102,13 @@ def _post_gateway_metadata_file(environ, params):
             'message': 'Invalid gateway.metadata.modified.'
         }
 
+    # Validate file sha256
+    if params['gateway.metadata.file.sha256'] and not isinstance(params['gateway.metadata.file.sha256'], str):
+        return {
+            'code': '400',
+            'message': 'Invalid gateway.metadata.file.sha256.'
+        }
+
     #
     # Execute request.
     #
@@ -119,7 +128,8 @@ def _post_gateway_metadata_file(environ, params):
         file_name=params['gateway.metadata.name'],
         size=params['gateway.metadata.file.size'],
         modified=params['gateway.metadata.modified'],
-        data=environ['wsgi.input']
+        data=environ['wsgi.input'],
+        sha256=params['gateway.metadata.file.sha256'],
     )
     if result is None:
         return {
@@ -154,6 +164,7 @@ def _put_gateway_metadata_file(environ, params):
     params.update({
         'gateway.metadata.file.size': None,
         'gateway.metadata.modified': None,
+        'gateway.metadata.file.sha256': None,
     })
 
     # From headers.
@@ -162,6 +173,7 @@ def _put_gateway_metadata_file(environ, params):
         if header_params:
             params['gateway.metadata.modified'] = header_params.get('gateway.metadata.modified')
             params['gateway.metadata.file.size'] = header_params.get('gateway.metadata.file.size')
+            params['gateway.metadata.file.sha256'] = header_params.get('gateway.metadata.file.sha256')
 
     #
     # Validate.
@@ -179,6 +191,14 @@ def _put_gateway_metadata_file(environ, params):
             'message': 'Invalid gateway.metadata.modified.'
         }
 
+    # Validate file sha256
+    if params['gateway.metadata.file.sha256'] and not isinstance(params['gateway.metadata.file.sha256'], str):
+        return {
+            'code': '400',
+            'message': 'Invalid gateway.metadata.file.sha256.'
+        }
+
+
     #
     # Execute request.
     #
@@ -194,6 +214,7 @@ def _put_gateway_metadata_file(environ, params):
         size=params['gateway.metadata.file.size'],
         modified=params['gateway.metadata.modified'],
         data=environ['wsgi.input'],
+        sha256=params['gateway.metadata.file.sha256'],
     )
     if result is None:
         return {
