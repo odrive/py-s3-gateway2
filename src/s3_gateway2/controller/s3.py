@@ -867,15 +867,15 @@ def _generate_part(upload, limit):
 
 def _redirect_upload(gateway_upload_id):
     # Get redirect info.
-    decoded_gateway_upload_id = base64.urlsafe_b64decode(gateway_upload_id).decode('utf-8')
-    parts = decoded_gateway_upload_id.split('::')
+    parts = gateway_upload_id.split('::')
     assert len(parts) == 2
     return {
-        'object.key': parts[0],
-        'upload.id': parts[1],
+        'object.key': base64.urlsafe_b64decode(parts[0]).decode('utf-8'),
+        'upload.id': base64.urlsafe_b64decode(parts[1]).decode('utf-8'),
     }
 
 
 def _gateway_upload_id(s3_object_key, s3_upload_id):
-    string = f"{s3_object_key}::{s3_upload_id}"
-    return base64.urlsafe_b64encode(string.encode('utf-8')).decode('ascii')
+    encoded_object_key = base64.urlsafe_b64encode(s3_object_key.encode('utf-8')).decode('ascii')
+    encoded_s3_upload_id = base64.urlsafe_b64encode(s3_upload_id.encode('utf-8')).decode('ascii')
+    return f"{encoded_object_key}::{encoded_s3_upload_id}"
