@@ -72,7 +72,7 @@ def _post_gateway_upload(environ, params):
     # Validate request.
     #
 
-    # Validate segment number.
+    # Validata segment params.
     if not isinstance(params['gateway.upload.segment.number'], int):
         return {
             'code': '400',
@@ -98,6 +98,8 @@ def _post_gateway_upload(environ, params):
             'code': '400',
             'message': 'Missing gateway.upload.segment.cookie.'
         }
+
+    # Validate upload cookie.
     if params['gateway.upload.cookie'] is None:
         return {
             'code': '400',

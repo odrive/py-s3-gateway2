@@ -154,46 +154,62 @@ def _post(environ, params):
     # Execute request.
     #
 
-    # Determine if we have an item or a folder.
+    # Start upload session for an existing file.
     if params['gateway.metadata.id']:
 
-        # Create upload for item.
+        # Make s3 object key from the file id.
+        file_object_key = s3_gateway2.util.metadata_id.object_key(params['gateway.metadata.id'])
+
+        # Create upload to update the file.
         new_upload = s3_gateway2.controller.s3.create_update_file_upload(
             region=params['config.region'],
             host=params['config.host'],
             access_key=params['config.access.key'],
             access_key_secret=params['config.access.key.secret'],
             bucket=params['config.bucket'],
-            object_key=s3_gateway2.util.metadata_id.object_key(params['gateway.metadata.id']),
+            object_key=file_object_key,
             segments=params['gateway.upload.segment']
         )
+        if new_upload is None:
+            return {
+                'code': '403',
+                'message': 'Not allowed.'
+            }
 
-    else:
-        # Get s3 object key prefix
-        prefix = s3_gateway2.util.metadata_id.object_key(params['gateway.metadata.parent.id']) \
-            if params['gateway.metadata.parent.id'] else None
-        if prefix:
-            assert prefix[-1] == '/'
+        # Send upload metadata.
+        return {
+            'code': '200',
+            'message': 'ok',
+            'contentType': 'application/json',
+            'content': json.dumps(new_upload)
+        }
 
-        # Create upload for folder.
-        new_upload = s3_gateway2.controller.s3.create_new_file_upload(
-            region=params['config.region'],
-            host=params['config.host'],
-            access_key=params['config.access.key'],
-            access_key_secret=params['config.access.key.secret'],
-            bucket=params['config.bucket'],
-            key_prefix=prefix,
-            file_name=params['gateway.metadata.name'],
-            segments=params['gateway.upload.segment']
-        )
+    # Start a new file upload session.
 
+    # Make s3 object key from the parent folder id.
+    parent_object_key = s3_gateway2.util.metadata_id.object_key(params['gateway.metadata.parent.id']) \
+        if params['gateway.metadata.parent.id'] else None
+    if parent_object_key:
+        assert parent_object_key[-1] == '/'
+
+    # Create upload of a new file in the folder.
+    new_upload = s3_gateway2.controller.s3.create_new_file_upload(
+        region=params['config.region'],
+        host=params['config.host'],
+        access_key=params['config.access.key'],
+        access_key_secret=params['config.access.key.secret'],
+        bucket=params['config.bucket'],
+        key_prefix=parent_object_key,
+        file_name=params['gateway.metadata.name'],
+        segments=params['gateway.upload.segment']
+    )
     if new_upload is None:
         return {
             'code': '403',
             'message': 'Not allowed.'
         }
 
-    # Send new metadata.
+    # Send upload metadata.
     return {
         'code': '200',
         'message': 'ok',

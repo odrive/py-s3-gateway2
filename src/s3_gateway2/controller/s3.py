@@ -22,6 +22,13 @@ def create_file(region, host, access_key, access_key_secret, bucket,
     else:
         object_key = file_name
 
+    # Make a generator for reading the file
+    file_stream = _stream_reader(
+        stream=data,
+        limit=size,
+        expected_sha256=sha256
+    )
+
     # Upload file.
     response_header = s3_gateway2.util.s3.create(
         region=region,
@@ -31,14 +38,7 @@ def create_file(region, host, access_key, access_key_secret, bucket,
         bucket=bucket,
         object_key=object_key,
         content_length=size,
-        data=requests_toolbelt.StreamingIterator(
-            size,
-            _file_stream_generator(
-                upload=data,
-                limit=size,
-                expected_sha256=sha256
-            )
-        ),
+        data=requests_toolbelt.StreamingIterator(size, file_stream),
         sha256=sha256
     )
 
@@ -537,6 +537,13 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
         # Not a file.
         return None
 
+    # Make a generator for reading the file
+    file_stream = _stream_reader(
+        stream=data,
+        limit=size,
+        expected_sha256=sha256
+    )
+
     # Upload file.
     response_header = s3_gateway2.util.s3.create(
         region=region,
@@ -546,14 +553,7 @@ def update_file(region, host, access_key, access_key_secret, bucket, object_key,
         bucket=bucket,
         object_key=object_key,
         content_length=size,
-        data=requests_toolbelt.StreamingIterator(
-            size,
-            _file_stream_generator(
-                upload=data,
-                limit=size,
-                expected_sha256=sha256
-            )
-        ),
+        data=requests_toolbelt.StreamingIterator(size, file_stream),
         sha256=sha256
     )
     if response_header is None:
@@ -583,7 +583,7 @@ def create_new_file_upload(region, host, access_key, access_key_secret, bucket, 
     assert file_name
     assert segments
 
-    # Calculate new S3 object key.
+    # Make object key for the new file.
     if key_prefix:
         object_key = f"{key_prefix}{file_name}"
     else:
@@ -686,7 +686,14 @@ def upload_segment(region, host, access_key, access_key_secret, bucket, segment_
     redirect_upload = _redirect_upload(gateway_upload_id)
     assert redirect_upload
 
-    # upload part to multipart upload session
+    # Make a generator for reading the segment
+    segment_stream = _stream_reader(
+        stream=input_stream,
+        limit=segment_size,
+        expected_sha256=segment_sha256
+    )
+
+    # Upload segment to multipart upload session.
     part_result = s3_gateway2.util.s3.upload_part(
         region=region,
         host=host,
@@ -695,14 +702,7 @@ def upload_segment(region, host, access_key, access_key_secret, bucket, segment_
         bucket=bucket,
         object_key=redirect_upload['object.key'],
         content_length=segment_size,
-        file_like_object=requests_toolbelt.StreamingIterator(
-            segment_size,
-            _file_stream_generator(
-                upload=input_stream,
-                limit=segment_size,
-                expected_sha256=segment_sha256
-            )
-        ),
+        file_like_object=requests_toolbelt.StreamingIterator(segment_size, segment_stream),
         part_number=segment_number,
         upload_id=redirect_upload['upload.id'],
         sha256=segment_sha256
@@ -799,14 +799,16 @@ def delete_upload(region, host, access_key, access_key_secret, bucket, gateway_u
     return True
 
 
-def _file_stream_generator(upload, limit, expected_sha256=None):
+def _stream_reader(stream, limit, expected_sha256=None):
     uploaded_bytes = 0
     chunk_size = 32768
     sha256 = hashlib.sha256()
+
+    # Yield chunks from stream until limit is reached.
     while True:
         if limit <= uploaded_bytes:
             break
-        out = upload.read(chunk_size)
+        out = stream.read(chunk_size)
         if not out:
             break
         uploaded_bytes += chunk_size
@@ -830,6 +832,7 @@ def _redirect_upload(gateway_upload_id):
 
 
 def _gateway_upload_id(s3_object_key, s3_upload_id):
+    # Make gateway upload id from s3 object key and s3 upload id.
     encoded_object_key = base64.urlsafe_b64encode(s3_object_key.encode('utf-8')).decode('ascii')
     encoded_s3_upload_id = base64.urlsafe_b64encode(s3_upload_id.encode('utf-8')).decode('ascii')
     return f"{encoded_object_key}::{encoded_s3_upload_id}"

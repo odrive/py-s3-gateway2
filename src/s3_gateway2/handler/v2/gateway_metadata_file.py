@@ -113,18 +113,21 @@ def _post_gateway_metadata_file(environ, params):
     # Execute request.
     #
 
-    prefix = s3_gateway2.util.metadata_id.object_key(params['gateway.metadata.id']) \
+    # Make s3 object key prefix from the folder id.
+    parent_object_key = s3_gateway2.util.metadata_id.object_key(params['gateway.metadata.id']) \
         if params['gateway.metadata.id'] \
         else None
-    if prefix:
-        assert prefix[-1] == '/'
+    if parent_object_key:
+        assert parent_object_key[-1] == '/'
+
+    # Upload file to the folder.
     result = s3_gateway2.controller.s3.create_file(
         region=params['config.region'],
         host=params['config.host'],
         access_key=params['config.access.key'],
         access_key_secret=params['config.access.key.secret'],
         bucket=params['config.bucket'],
-        key_prefix=prefix,
+        key_prefix=parent_object_key,
         file_name=params['gateway.metadata.name'],
         size=params['gateway.metadata.file.size'],
         modified=params['gateway.metadata.modified'],
