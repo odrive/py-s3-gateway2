@@ -51,40 +51,20 @@ def _post_gateway_metadata_upload(environ, params):
     #
 
     params.update({
-        'gateway.metadata.name': None,
-        'gateway.metadata.modified': None,
         'gateway.metadata.file.size': None,
-        'gateway.metadata.file.sha256': None,
         'gateway.upload.id': None,
         'gateway.upload.segment': None,
-        'gateway.upload.cookie': None,
     })
 
     # Load body.
     body = json.load(environ['wsgi.input'])
-    params['gateway.metadata.name'] = body.get('gateway.metadata.name')
     params['gateway.metadata.file.size'] = body.get('gateway.metadata.file.size')
-    params['gateway.metadata.modified'] = body.get('gateway.metadata.modified')
-    params['gateway.metadata.file.sha256'] = body.get('gateway.metadata.file.sha256')
     params['gateway.upload.id'] = body.get('gateway.upload.id')
     params['gateway.upload.segment'] = body.get('gateway.upload.segment')
-    params['gateway.upload.cookie'] = body.get('gateway.upload.cookie')
 
     #
     # Validate request.
     #
-
-    # Validate name..
-    if params['gateway.metadata.name'] is None:
-        return {
-            'code': '400',
-            'message': 'Missing gateway.metadata.name.'
-        }
-    # if any(u in params['gateway.metadata.name'] for u in ['"', '*', ':' , '<', '>', '?', '\\', '/', '|']):
-    #     return {
-    #         'code': '403',
-    #         'message': 'File name contains illegal characters (" * : < > ? / \ |) for s3.'
-    #     }
 
     # Validate size.
     if params['gateway.metadata.file.size'] is None:
@@ -96,25 +76,6 @@ def _post_gateway_metadata_upload(environ, params):
         return {
             'code': '400',
             'message': 'Invalid size.'
-        }
-
-    # Validate mod time
-    if params['gateway.metadata.modified'] is None:
-        return {
-            'code': '400',
-            'message': 'Missing gateway.metadata.modified.'
-        }
-    if not isinstance(params['gateway.metadata.modified'], int):
-        return {
-            'code': '400',
-            'message': 'Invalid gateway.metadata.modified.'
-        }
-
-    # Validate file sha256
-    if params['gateway.metadata.file.sha256'] and not isinstance(params['gateway.metadata.file.sha256'], str):
-        return {
-            'code': '400',
-            'message': 'Invalid gateway.metadata.file.sha256.'
         }
 
     # Validate upload session ID
@@ -132,18 +93,11 @@ def _post_gateway_metadata_upload(environ, params):
                 'message': 'Invalid gateway.upload.segment list.'
             }
 
-    # Validate upload cookie
-    if params['gateway.upload.cookie'] is None:
-        return {
-            'code': '400',
-            'message': 'Missing gateway.upload.cookie.'
-        }
-
     #
     # Execute request.
     #
 
-    # Complete upload new file.
+    # Complete the upload.
     new_metadata = s3_gateway2.controller.s3.complete_upload(
         region=params['config.region'],
         host=params['config.host'],
@@ -186,21 +140,15 @@ def _put_gateway_metadata_upload(environ, params):
 
     params.update({
         'gateway.metadata.file.size': None,
-        'gateway.metadata.modified': None,
-        'gateway.metadata.file.sha256': None,
         'gateway.upload.id': None,
         'gateway.upload.segment': None,
-        'gateway.upload.cookie': None,
     })
 
     # Load body.
     body = json.load(environ['wsgi.input'])
-    params['gateway.metadata.modified'] = body.get('gateway.metadata.modified')
     params['gateway.metadata.file.size'] = body.get('gateway.metadata.file.size')
-    params['gateway.metadata.file.sha256'] = body.get('gateway.metadata.file.sha256')
     params['gateway.upload.id'] = body.get('gateway.upload.id')
     params['gateway.upload.segment'] = body.get('gateway.upload.segment')
-    params['gateway.upload.cookie'] = body.get('gateway.upload.cookie')
 
     #
     # Validate.
@@ -218,25 +166,6 @@ def _put_gateway_metadata_upload(environ, params):
             'message': 'Invalid size.'
         }
 
-    # Validate mod time
-    if params['gateway.metadata.modified'] is None:
-        return {
-            'code': '400',
-            'message': 'Missing gateway.metadata.modified.'
-        }
-    if not isinstance(params['gateway.metadata.modified'], int):
-        return {
-            'code': '400',
-            'message': 'Invalid gateway.metadata.modified.'
-        }
-
-    # Validate file sha256
-    if params['gateway.metadata.file.sha256'] and not isinstance(params['gateway.metadata.file.sha256'], str):
-        return {
-            'code': '400',
-            'message': 'Invalid gateway.metadata.file.sha256.'
-        }
-
     # Validate upload session ID
     if params['gateway.upload.id'] and not isinstance(params['gateway.upload.id'], str):
         return {
@@ -252,18 +181,11 @@ def _put_gateway_metadata_upload(environ, params):
                 'message': 'Invalid gateway.upload.segment list.'
             }
 
-    # Validate upload cookie
-    if params['gateway.upload.cookie'] is None:
-        return {
-            'code': '400',
-            'message': 'Missing gateway.upload.cookie.'
-        }
-
     #
     # Execute request.
     #
 
-    # Complete update file.
+    # Complete the upload.
     updated_metadata = s3_gateway2.controller.s3.complete_upload(
         region=params['config.region'],
         host=params['config.host'],
