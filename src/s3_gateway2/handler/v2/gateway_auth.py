@@ -132,6 +132,7 @@ def _post(environ, params):
         'gateway.auth.refresh.token': None,
         'gateway.auth.metadata.id': config['config.root.metadata.id'],
         'gateway.auth.id': None,
+        'gateway.upload.segment.size': _config['s3_gateway2.handler.v2.gateway_auth.upload.segment.size'],
     }
     return {
         'code': '200',
@@ -182,3 +183,18 @@ def _delete_gateway_auth(environ, params):
         'code': '200',
         'message': 'OK'
     }
+
+
+#
+# Config
+#
+
+def update_config(config):
+    # Load relevant configurations.
+    for key in _config.keys():
+        _config[key] = config[key]
+
+
+_config = {
+    's3_gateway2.handler.v2.gateway_auth.upload.segment.size': 100 * 1024 * 1024,
+}

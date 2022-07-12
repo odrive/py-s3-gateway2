@@ -51,8 +51,11 @@ def main():
         's3_gateway2.util.s3.log.enable': True,
         's3_gateway2.util.s3.log.file': os.path.join(data_dir, 's3.log'),
         's3_gateway2.util.s3.request.timeout': 15,
-        's3_gateway2.controller.datastore.dir': os.path.join(data_dir, 'datastore')
-    }    
+        's3_gateway2.controller.datastore.dir': os.path.join(data_dir, 'datastore'),
+
+        # Config s3 handler
+        's3_gateway2.handler.v2.gateway_auth.upload.segment.size': 100 * 1024 * 1024,
+    }
     
     # Ensure folder ready.
     if not os.path.exists(s3_gateway2_config['s3_gateway2.controller.datastore.dir']):

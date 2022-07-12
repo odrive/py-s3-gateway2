@@ -48,7 +48,7 @@ def check_bucket_exists(region, host, access_key, access_key_secret, bucket):
 
 
 def create(region, host, access_key, access_key_secret, bucket, object_key,
-           content_length, data, content_md5=None):
+           content_length, data, content_md5=None, sha256=None):
     assert region
     assert host
     assert access_key
@@ -67,7 +67,8 @@ def create(region, host, access_key, access_key_secret, bucket, object_key,
         object_key=object_key,
         content_length=content_length,
         data=data,
-        content_md5=content_md5
+        content_md5=content_md5,
+        sha256=sha256
     )
 
     # handle bucket not found
@@ -120,7 +121,7 @@ def create_multipart_upload(region, host, access_key, access_key_secret, bucket,
 
 
 def upload_part(region, host, access_key, access_key_secret, bucket, object_key,
-                content_length, file_like_object, part_number, upload_id, content_md5=None):
+                content_length, file_like_object, part_number, upload_id, content_md5=None, sha256=None):
     assert region
     assert host
     assert access_key
@@ -143,7 +144,8 @@ def upload_part(region, host, access_key, access_key_secret, bucket, object_key,
         file_like_object=file_like_object,
         part_number=part_number,
         upload_id=upload_id,
-        content_md5=content_md5
+        content_md5=content_md5,
+        sha256=sha256
     )
 
     # handle bucket not found
@@ -691,7 +693,7 @@ def _send_put_bucket_object_copy(region, host, access_key, access_key_secret,
 
 # PUT /<bucket>/<object-name>
 def _send_put_bucket_object(region, host, access_key, access_key_secret,
-                            bucket, object_key, content_length, data, content_md5=None):
+                            bucket, object_key, content_length, data, content_md5=None, sha256=None):
     # https://docs.aws.amazon.com/AmazonS3/latest/API/RESTObjectPUT.html
 
     bucket = urllib.parse.quote(bucket.encode('utf-8'))
@@ -711,7 +713,8 @@ def _send_put_bucket_object(region, host, access_key, access_key_secret,
         uri='/{}/{}'.format(bucket, object_key), 
         headers=headers, 
         data=data,
-        stream=True
+        stream=True,
+        sha256=sha256
     )
 
 
@@ -736,7 +739,8 @@ def _send_create_multipart(region, host, access_key, access_key_secret, bucket, 
 
 # PUT /<bucket>/<object-name>?PartNumber=<part_number>&UploadId=<upload_id>
 def _send_upload_part(region, host, access_key, access_key_secret,
-                      bucket, object_key, content_length, file_like_object, part_number, upload_id, content_md5=None):
+                      bucket, object_key, content_length, file_like_object, part_number, upload_id, content_md5=None,
+                      sha256=None):
     # https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPart.html
 
     bucket = urllib.parse.quote(bucket.encode('utf-8'))
@@ -760,7 +764,8 @@ def _send_upload_part(region, host, access_key, access_key_secret,
         query_params=params,
         headers=headers,
         data=file_like_object,
-        stream=True
+        stream=True,
+        sha256=sha256
     )
 
 
@@ -804,7 +809,7 @@ def _send_abort_multipart(region, host, access_key, access_key_secret, bucket, o
 # send request with sig4 headers
 @log_http_request
 def _send_sig4_request(region, host, access_key, access_key_secret,
-                       method, uri, query_params=None, headers=None, data=None, stream=False):
+                       method, uri, query_params=None, headers=None, data=None, stream=False, sha256=None):
     # https://docs.aws.amazon.com/general/latest/gr/sigv4-signed-request-examples.html
     assert region
     assert host
@@ -836,7 +841,8 @@ def _send_sig4_request(region, host, access_key, access_key_secret,
     headers = {} if headers is None else headers
     headers['host'] = host
     headers['x-amz-date'] = amz_date
-    headers['x-amz-content-sha256'] = 'UNSIGNED-PAYLOAD' if data else hashlib.sha256(''.encode('utf-8')).hexdigest()
+    headers['x-amz-content-sha256'] = sha256 if sha256 else \
+        'UNSIGNED-PAYLOAD' if data else hashlib.sha256(''.encode('utf-8')).hexdigest()
     sorted_lowered = []
     for header in sorted(headers.keys()):
         sorted_lowered.append((header.lower().strip(), headers[header]))
@@ -846,7 +852,8 @@ def _send_sig4_request(region, host, access_key, access_key_secret,
     signed_headers = ';'.join([k for k, v in sorted_lowered])
 
     # generate body signature
-    payload_hash = 'UNSIGNED-PAYLOAD' if data else hashlib.sha256(''.encode('utf-8')).hexdigest()
+    payload_hash = sha256 if sha256 else \
+        'UNSIGNED-PAYLOAD' if data else hashlib.sha256(''.encode('utf-8')).hexdigest()
 
     # assemble parts into canonical request string
     canonical_request = '\n'.join([
